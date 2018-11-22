@@ -1,43 +1,85 @@
 grammar Smoola;
+
+    @header{
+        import ast.*;
+        import ast.node.*;
+        import ast.node.declaration.*;
+        import ast.node.expression.*;
+        import ast.node.expression.Value.*;
+        import ast.node.statement.*;
+        import ast.Type.*;
+        import ast.Type.ArrayType.*;
+        import ast.Type.PrimitiveType.*;
+        import ast.Type.UserDefinedType.*;
+    }
+
     program:
-        mainClass (classDeclaration)* EOF
+        { Program program = new Program(); }
+        main = mainClass { program.setMainClass(main); }
+         (classDec = classDeclaration { program.addClass(classDec); } )* EOF
     ;
-    mainClass:
+
+    mainClass returns [classDeclaration main_class]:
         // name should be checked later
-        'class' ID '{' 'def' ID '(' ')' ':' 'int' '{'  statements 'return' expression ';' '}' '}'
+        'class' className = ID { ClassDeclaration classDec = new ClassDeclaration(new Identifier(className), null); }
+        '{' 'def' methodName = ID '(' ')' ':' 'int' '{'  stmnts = statements 'return' returnExpr = expression ';' '}' '}'
+        {
+            MethodDeclaration methodDec = new MethodDeclaration(new Identifier(methodName));
+            for (Statement stmnt : stmnts)
+                methodDeclaration.addStatement(stmnt);
+            methodDeclaration.setReturnType(new ReturnType(new IntType()));
+            methodDeclaration.setReturnValue(returnExpr);
+            classDec.addMethodDeclaration(methodDeclaration);
+        }
     ;
-    classDeclaration:
-        'class' ID ('extends' ID)? '{' (varDeclaration)* (methodDeclaration)* '}'
+
+    classDeclaration returns [classDeclaration class_dec]:
+        'class' className = ID ('extends' parentName = ID)?
+        {
+            ClassDeclaration classDec = new ClassDeclaration(new Identifier(className), new Identifier(parentName));
+        }
+        '{' (varDec = varDeclaration { classDec.addVarDeclaration(varDec); } )*
+        (methodDec = methodDeclaration { classDec.addMethodDeclaration(methodDec); } )* '}'
     ;
-    varDeclaration:
-        'var' ID ':' type ';'
+
+    varDeclaration returns [VarDeclaration varDec]:
+        'var' name = ID ':' varType = type ';'
+        { varDec = new VarDeclaration(new Identifier(name), varType); }
     ;
-    methodDeclaration:
+
+    methodDeclaration returns [MethodDeclaration methodDec]:
         'def' ID ('(' ')' | ('(' ID ':' type (',' ID ':' type)* ')')) ':' type '{'  varDeclaration* statements 'return' expression ';' '}'
     ;
+
     statements:
         (statement)*
     ;
-    statement:
+
+    statement returns [Statement stmnt]:
         statementBlock |
         statementCondition |
         statementLoop |
         statementWrite |
         statementAssignment
     ;
-    statementBlock:
+
+    statementBlock returns [Block block]:
         '{'  statements '}'
     ;
-    statementCondition:
+
+    statementCondition returns [Conditional cond]:
         'if' '('expression')' 'then' statement ('else' statement)?
     ;
-    statementLoop:
+
+    statementLoop returns [While loop]:
         'while' '(' expression ')' statement
     ;
-    statementWrite:
+
+    statementWrite returns [Write write]:
         'writeln(' expression ')' ';'
     ;
-    statementAssignment:
+
+    statementAssignment returns [Assign assign]:
         expression ';'
     ;
 
@@ -120,10 +162,12 @@ grammar Smoola;
 	expressionMethods:
 	    expressionOther expressionMethodsTemp
 	;
+
 	expressionMethodsTemp:
 	    '.' (ID '(' ')' | ID '(' (expression (',' expression)*) ')' | 'length') expressionMethodsTemp
 	    |
 	;
+
     expressionOther:
 		CONST_NUM
         |	CONST_STR
@@ -136,13 +180,34 @@ grammar Smoola;
         |   ID '[' expression ']'
         |	'(' expression ')'
 	;
-	type:
-	    'int' |
-	    'boolean' |
-	    'string' |
-	    'int' '[' ']' |
-	    ID
+
+	type returns [Type syn_type]:
+	    'int'
+	    {
+	        $syn_type = new IntType();
+        }
+        |
+	    'boolean'
+	    {
+	        $syn_type = new BooleanType();
+        }
+	    |
+	    'string'
+	    {
+	        $syn_type = new StringType();
+        }
+	    |
+	    'int' '[' ']'
+	    {
+	        $syn_type = new ArrayType();
+        }
+	    |
+	    identifier = ID
+	    {
+	        $syn_type = new Identifier($identifier);
+        }
 	;
+
     CONST_NUM:
 		[0-9]+
 	;
