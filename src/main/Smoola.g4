@@ -150,6 +150,7 @@ grammar Smoola;
 		leftExpr = expressionOr '=' rightExpr = expressionAssignment
 		{
 		    $assignExpr = new BinaryExpression($leftExpr.expr, $rightExpr.expr, BinaryOperator.assign);
+		    $expr = $assignExpr;
 		}
 	    |	expr1 = expressionOr
 	    {
@@ -388,10 +389,10 @@ grammar Smoola;
 	        '(' (arg1 = expression { tmp.addArg($arg1.expr); } (',' arg2 = expression { tmp.addArg($arg2.expr); } )*) ')'
 	        { $expr = tmp; }
 	        | 'length' { $expr = new Length($inhInstanceName); }
-	    ) expressionMethodsTemp [$expr]
+	    ) expr1 = expressionMethodsTemp [$expr] { $expr = $expr1.expr; }
 	    |
 	    {
-	        $expr = null;
+	        $expr = $inhInstanceName;
 	    }
 	;
 
