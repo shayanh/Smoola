@@ -24,6 +24,9 @@ public class VisitorImpl implements Visitor {
     @Override
     public void visit(ClassDeclaration classDeclaration) {
         System.out.println(classDeclaration.toString());
+
+        classDeclaration.getName().accept(this);
+
         for (VarDeclaration varDec: classDeclaration.getVarDeclarations()) {
             varDec.accept(this);
         }
@@ -35,6 +38,9 @@ public class VisitorImpl implements Visitor {
     @Override
     public void visit(MethodDeclaration methodDeclaration) {
         System.out.println(methodDeclaration.toString());
+
+        methodDeclaration.getName().accept(this);
+
         for (VarDeclaration arg: methodDeclaration.getArgs()) {
             arg.accept(this);
         }
@@ -44,6 +50,8 @@ public class VisitorImpl implements Visitor {
         for (Statement statement: methodDeclaration.getBody()) {
             statement.accept(this);
         }
+
+        methodDeclaration.getReturnValue().accept(this);
     }
 
     @Override
