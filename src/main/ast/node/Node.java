@@ -3,7 +3,7 @@ package ast.node;
 import ast.Visitor;
 
 public abstract class Node {
-    public int line;
+    private int line;
 
     public int getLine() { return line; }
     public void setLine(int l) { line = l; }

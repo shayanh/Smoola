@@ -25,6 +25,10 @@ public class VisitorImpl implements Visitor {
         pass = newPass;
     }
 
+    public boolean hasError() {
+        return hasError;
+    }
+
     @Override
     public void visit(Program program) {
         if (pass == Pass.PrintOrder)
@@ -155,6 +159,12 @@ public class VisitorImpl implements Visitor {
         if (pass == Pass.PrintOrder)
             System.out.println(newArray.toString());
         newArray.getExpression().accept(this);
+
+        IntValue intValue = (IntValue) newArray.getExpression();
+        if (intValue.getConstant() == 0) {
+            ErrorLogger.log("Array length should not be zero or negative", newArray);
+            hasError = true;
+        }
     }
 
     @Override
