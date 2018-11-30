@@ -223,7 +223,10 @@ grammar Smoola;
     expressionEqTemp returns [Expression expr, BinaryOperator synOp]:
 		op = ('==' | '<>') cmpExpr = expressionCmp eqTempExpr = expressionEqTemp
 		{
-		    $synOp = ($op.text.equals("<>") ? BinaryOperator.neq : BinaryOperator.eq);
+		    if ($op.text.equals("<>"))
+		        $synOp = BinaryOperator.neq;
+            else
+                $synOp = BinaryOperator.eq;
 		    if ($eqTempExpr.expr == null) {
 		        $expr = $cmpExpr.expr;
 		    } else {
@@ -251,7 +254,10 @@ grammar Smoola;
     expressionCmpTemp returns [Expression expr, BinaryOperator synOp]:
 		op = ('<' | '>') addExpr = expressionAdd cmpTempExpr = expressionCmpTemp
 		{
-			$synOp = ($op.text.equals("<") ? BinaryOperator.lt : BinaryOperator.gt);
+			if ($op.text.equals("<"))
+			    $synOp = BinaryOperator.lt;
+			else
+			    $synOp = BinaryOperator.gt;
 		    if ($cmpTempExpr.expr == null) {
 		        $expr = $addExpr.expr;
 		    } else {
@@ -279,7 +285,10 @@ grammar Smoola;
     expressionAddTemp returns [Expression expr, BinaryOperator synOp]:
 		op = ('+' | '-') mulExpr = expressionMult addTempExpr = expressionAddTemp
 		{
-			$synOp = ($op.text.equals("+") ? BinaryOperator.add : BinaryOperator.sub);
+		    if ($op.text.equals("+"))
+		        $synOp = BinaryOperator.add;
+            else
+                $synOp = BinaryOperator.sub;
 		    if ($addTempExpr.expr == null) {
 		        $expr = $mulExpr.expr;
 		    } else {
@@ -307,7 +316,10 @@ grammar Smoola;
     expressionMultTemp returns [Expression expr, BinaryOperator synOp]:
 		op = ('*' | '/') unaryExpr = expressionUnary mulTempExpr = expressionMultTemp
 		{
-			$synOp = ($op.text.equals("*") ? BinaryOperator.mult : BinaryOperator.div);
+		    if ($op.text.equals("*"))
+		        $synOp = BinaryOperator.mult;
+		    else
+		        $synOp = BinaryOperator.div;
 		    if ($mulTempExpr.expr == null) {
 		        $expr = $unaryExpr.expr;
 		    } else {
@@ -324,7 +336,11 @@ grammar Smoola;
     expressionUnary returns [Expression expr]:
 		op = ('!' | '-') unaryExpr = expressionUnary
 		{
-		    UnaryOperator unaryOp = ($op.text.equals("!") ? UnaryOperator.not : UnaryOperator.minus);
+		    UnaryOperator unaryOp;
+		    if ($op.text.equals("!"))
+		        unaryOp = UnaryOperator.not;
+		    else
+		        unaryOp = UnaryOperator.minus;
 		    $expr = new UnaryExpression(unaryOp, $unaryExpr.expr);
 		}
 	    |	memExpr = expressionMem
