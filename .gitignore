@@ -117,3 +117,13 @@ compilerFall97.iml
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+
+# auto-generated files
+src/main/Smoola.interp
+src/main/Smoola.tokens
+src/main/SmoolaBaseListener.java
+src/main/SmoolaLexer.interp
+src/main/SmoolaLexer.java
+src/main/SmoolaLexer.tokens
+src/main/SmoolaListener.java
+src/main/SmoolaParser.java
