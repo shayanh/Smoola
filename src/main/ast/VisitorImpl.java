@@ -14,106 +14,152 @@ public class VisitorImpl implements Visitor {
 
     @Override
     public void visit(Program program) {
-        //TODO: implement appropriate visit functionality
+        System.out.println(program.toString());
+        program.getMainClass().accept(this);
+        for (ClassDeclaration classDec: program.getClasses()) {
+            classDec.accept(this);
+        }
     }
 
     @Override
     public void visit(ClassDeclaration classDeclaration) {
-        //TODO: implement appropriate visit functionality
+        System.out.println(classDeclaration.toString());
+        for (VarDeclaration varDec: classDeclaration.getVarDeclarations()) {
+            varDec.accept(this);
+        }
+        for (MethodDeclaration methodDec: classDeclaration.getMethodDeclarations()) {
+            methodDec.accept(this);
+        }
     }
 
     @Override
     public void visit(MethodDeclaration methodDeclaration) {
-        //TODO: implement appropriate visit functionality
+        System.out.println(methodDeclaration.toString());
+        for (VarDeclaration arg: methodDeclaration.getArgs()) {
+            arg.accept(this);
+        }
+        for (VarDeclaration localVar: methodDeclaration.getLocalVars()) {
+            localVar.accept(this);
+        }
+        for (Statement statement: methodDeclaration.getBody()) {
+            statement.accept(this);
+        }
     }
 
     @Override
     public void visit(VarDeclaration varDeclaration) {
-        //TODO: implement appropriate visit functionality
+        System.out.println(varDeclaration.toString());
+        varDeclaration.getIdentifier().accept(this);
     }
 
     @Override
     public void visit(ArrayCall arrayCall) {
-        //TODO: implement appropriate visit functionality
+        System.out.println(arrayCall.toString());
+        arrayCall.getInstance().accept(this);
+        arrayCall.getIndex().accept(this);
     }
 
     @Override
     public void visit(BinaryExpression binaryExpression) {
-        //TODO: implement appropriate visit functionality
+        System.out.println(binaryExpression.toString());
+        binaryExpression.getLeft().accept(this);
+        binaryExpression.getRight().accept(this);
     }
 
     @Override
     public void visit(Identifier identifier) {
-        //TODO: implement appropriate visit functionality
+        System.out.println(identifier.toString());
     }
 
     @Override
     public void visit(Length length) {
-        //TODO: implement appropriate visit functionality
+        System.out.println(length.toString());
+        length.getExpression().accept(this);
     }
 
     @Override
     public void visit(MethodCall methodCall) {
-        //TODO: implement appropriate visit functionality
+        System.out.println(methodCall.toString());
+        methodCall.getInstance().accept(this);
+        methodCall.getMethodName().accept(this);
+        for (Expression arg: methodCall.getArgs()) {
+            arg.accept(this);
+        }
     }
 
     @Override
     public void visit(NewArray newArray) {
-        //TODO: implement appropriate visit functionality
+        System.out.println(newArray.toString());
+        newArray.getExpression().accept(this);
     }
 
     @Override
     public void visit(NewClass newClass) {
-        //TODO: implement appropriate visit functionality
+        System.out.println(newClass.toString());
+        newClass.getClassName().accept(this);
     }
 
     @Override
     public void visit(This instance) {
-        //TODO: implement appropriate visit functionality
+        System.out.println(instance.toString());
     }
 
     @Override
     public void visit(UnaryExpression unaryExpression) {
-        //TODO: implement appropriate visit functionality
+        System.out.println(unaryExpression.toString());
+        unaryExpression.getValue().accept(this);
     }
 
     @Override
     public void visit(BooleanValue value) {
-        //TODO: implement appropriate visit functionality
+        System.out.println(value.toString());
     }
 
     @Override
     public void visit(IntValue value) {
-        //TODO: implement appropriate visit functionality
+        System.out.println(value.toString());
     }
 
     @Override
     public void visit(StringValue value) {
-        //TODO: implement appropriate visit functionality
+        System.out.println(value.toString());
     }
 
     @Override
     public void visit(Assign assign) {
-        //TODO: implement appropriate visit functionality
+        System.out.println(assign.toString());
+        assign.getlValue().accept(this);
+        assign.getrValue().accept(this);
     }
 
     @Override
     public void visit(Block block) {
-        //TODO: implement appropriate visit functionality
+        System.out.println(block.toString());
+        for (Statement statement: block.getBody()) {
+            statement.accept(this);
+        }
     }
 
     @Override
     public void visit(Conditional conditional) {
-        //TODO: implement appropriate visit functionality
+        System.out.println(conditional.toString());
+        conditional.getExpression().accept(this);
+        conditional.getConsequenceBody().accept(this);
+        if (conditional.getAlternativeBody() != null) {
+            conditional.getAlternativeBody().accept(this);
+        }
     }
 
     @Override
     public void visit(While loop) {
-        //TODO: implement appropriate visit functionality
+        System.out.println(loop.toString());
+        loop.getCondition().accept(this);
+        loop.getBody().accept(this);
     }
 
     @Override
     public void visit(Write write) {
-        //TODO: implement appropriate visit functionality
+        System.out.println(write.toString());
+        write.getArg().accept(this);
     }
 }
