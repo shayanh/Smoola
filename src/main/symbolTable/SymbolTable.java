@@ -59,4 +59,8 @@ public class SymbolTable {
 	public SymbolTable getPreSymbolTable() {
 		return pre;
 	}
+
+    public HashMap<String, SymbolTableItem> getItems() {
+        return items;
+    }
 }

@@ -11,14 +11,20 @@ import ast.node.expression.Value.StringValue;
 import ast.node.statement.*;
 import symbolTable.*;
 
+import java.util.HashMap;
+
 public class VisitorImpl implements Visitor {
 
     private Pass pass;
     private boolean hasError;
+    private HashMap<String, SymbolTable> classSymbolTable;
+    private HashMap<String, ClassDeclaration> classDecMap;
 
     public VisitorImpl() {
         pass = Pass.First;
         hasError = false;
+        classSymbolTable = new HashMap<>();
+        classDecMap = new HashMap<>();
     }
 
     public void setPass(Pass newPass) {
@@ -56,46 +62,81 @@ public class VisitorImpl implements Visitor {
                 ErrorLogger.log("Redefinition of class "+classDeclaration.getName().getName(), classDeclaration);
                 hasError = true;
             }
+            classDecMap.put(classDeclaration.getName().getName(), classDeclaration);
         }
 
-        if (pass != Pass.First) {
-            SymbolTable symbolTable = new SymbolTable(SymbolTable.top);
-            SymbolTable.push(symbolTable);
+        SymbolTable symbolTable = new SymbolTable(SymbolTable.top);
+        SymbolTable.push(symbolTable);
 
-            classDeclaration.getName().accept(this);
-            for (VarDeclaration varDec : classDeclaration.getVarDeclarations()) {
-                varDec.accept(this);
+        if (pass == Pass.Second && classDeclaration.getParentName() != null) {
+            String parName = classDeclaration.getParentName().getName();
+            ClassDeclaration x = classDecMap.get(parName);
+            while (x != null) {
+                SymbolTable s = classSymbolTable.get(x.getName().getName());
+                for (SymbolTableItem symbolTableItem : s.getItems().values()) {
+                    try {
+                        SymbolTable.top.put(symbolTableItem);
+                    } catch (ItemAlreadyExistsException e) {
+                        hasError = true;
+                    }
+                }
+                Identifier parIdentifier = x.getParentName();
+                if (parIdentifier == null) {
+                    break;
+                }
+                parName = x.getParentName().getName();
+                x = classDecMap.get(parName);
             }
-            for (MethodDeclaration methodDec : classDeclaration.getMethodDeclarations()) {
-                methodDec.accept(this);
-            }
-
-            SymbolTable.pop();
         }
-    }
+
+        classDeclaration.getName().accept(this);
+        for (VarDeclaration varDec : classDeclaration.getVarDeclarations()) {
+            varDec.accept(this);
+        }
+        for (MethodDeclaration methodDec : classDeclaration.getMethodDeclarations()) {
+            methodDec.accept(this);
+        }
+
+        SymbolTable.pop();
+        if (pass == Pass.First) {
+            classSymbolTable.put(classDeclaration.getName().getName(), symbolTable);
+        }
+}
 
     @Override
     public void visit(MethodDeclaration methodDeclaration) {
         if (pass == Pass.PrintOrder)
             System.out.println(methodDeclaration.toString());
 
-        SymbolTable symbolTable = new SymbolTable(SymbolTable.top);
-        SymbolTable.push(symbolTable);
-
-        methodDeclaration.getName().accept(this);
-
-        for (VarDeclaration arg: methodDeclaration.getArgs()) {
-            arg.accept(this);
+        String methodName = methodDeclaration.getName().getName();
+        SymbolTableMethodItem symbolTableMethodItem = new SymbolTableMethodItem(methodName, null);
+        try {
+            SymbolTable.top.put(symbolTableMethodItem);
+        } catch (ItemAlreadyExistsException e) {
+            if (pass == Pass.Second) {
+                ErrorLogger.log("Redefinition of method "+methodName, methodDeclaration);
+            }
+            hasError = true;
         }
-        for (VarDeclaration localVar : methodDeclaration.getLocalVars()) {
-            localVar.accept(this);
-        }
-        for (Statement statement : methodDeclaration.getBody()) {
-            statement.accept(this);
-        }
-        methodDeclaration.getReturnValue().accept(this);
 
-        SymbolTable.pop();
+        if (pass != Pass.First) {
+            SymbolTable symbolTable = new SymbolTable(SymbolTable.top);
+            SymbolTable.push(symbolTable);
+
+            methodDeclaration.getName().accept(this);
+            for (VarDeclaration arg : methodDeclaration.getArgs()) {
+                arg.accept(this);
+            }
+            for (VarDeclaration localVar : methodDeclaration.getLocalVars()) {
+                localVar.accept(this);
+            }
+            for (Statement statement : methodDeclaration.getBody()) {
+                statement.accept(this);
+            }
+            methodDeclaration.getReturnValue().accept(this);
+
+            SymbolTable.pop();
+        }
     }
 
     @Override
@@ -109,7 +150,9 @@ public class VisitorImpl implements Visitor {
         try {
             SymbolTable.top.put(symbolTableVariableItem);
         } catch (ItemAlreadyExistsException e) {
-            ErrorLogger.log("Redefinition of variable "+varName, varDeclaration);
+            if (pass == Pass.Second) {
+                ErrorLogger.log("Redefinition of variable " + varName, varDeclaration);
+            }
             hasError = true;
         }
     }
@@ -162,7 +205,9 @@ public class VisitorImpl implements Visitor {
 
         IntValue intValue = (IntValue) newArray.getExpression();
         if (intValue.getConstant() == 0) {
-            ErrorLogger.log("Array length should not be zero or negative", newArray);
+            if (pass == Pass.Second) {
+                ErrorLogger.log("Array length should not be zero or negative", newArray);
+            }
             hasError = true;
         }
     }

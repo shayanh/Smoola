@@ -15,3 +15,18 @@ class MainClass {
         return i;
     }
 }
+
+class Test extends MainClass {
+    var a: int;
+    var b: int;
+    def test(): int {
+        return 0;
+    }
+}
+
+class Test2 extends Test {
+    var i: int;
+    def factorial(f: int) : int {
+        return 0;
+    }
+}
