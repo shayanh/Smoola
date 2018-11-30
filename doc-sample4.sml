@@ -1,18 +1,17 @@
 class MainClass {
     def main(): int {
-        writeln(new Math().factorial(5));
         return 0;
     }
 }
 
-class Math {
+class MainClass {
     var i : int;
+    var i : int;
+    var a : int[];
     def factorial(f : int) : int {
-        var j : int;
-        j = 1;
-        while(f <> 0) {
-            j = j * f;
-        }
-        return j;
+        var i : int;
+        a = new int[0];
+        i = 2;
+        return i;
     }
 }
