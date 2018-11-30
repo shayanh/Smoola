@@ -223,7 +223,7 @@ grammar Smoola;
     expressionEqTemp returns [Expression expr, BinaryOperator synOp]:
 		op = ('==' | '<>') cmpExpr = expressionCmp eqTempExpr = expressionEqTemp
 		{
-		    $synOp = ($op.text == "<>" ? BinaryOperator.neq : BinaryOperator.eq);
+		    $synOp = ($op.text.equals("<>") ? BinaryOperator.neq : BinaryOperator.eq);
 		    if ($eqTempExpr.expr == null) {
 		        $expr = $cmpExpr.expr;
 		    } else {
@@ -251,7 +251,7 @@ grammar Smoola;
     expressionCmpTemp returns [Expression expr, BinaryOperator synOp]:
 		op = ('<' | '>') addExpr = expressionAdd cmpTempExpr = expressionCmpTemp
 		{
-			$synOp = ($op.text == "<" ? BinaryOperator.lt : BinaryOperator.gt);
+			$synOp = ($op.text.equals("<") ? BinaryOperator.lt : BinaryOperator.gt);
 		    if ($cmpTempExpr.expr == null) {
 		        $expr = $addExpr.expr;
 		    } else {
@@ -279,7 +279,7 @@ grammar Smoola;
     expressionAddTemp returns [Expression expr, BinaryOperator synOp]:
 		op = ('+' | '-') mulExpr = expressionMult addTempExpr = expressionAddTemp
 		{
-			$synOp = ($op.text == "+" ? BinaryOperator.add : BinaryOperator.sub);
+			$synOp = ($op.text.equals("+") ? BinaryOperator.add : BinaryOperator.sub);
 		    if ($addTempExpr.expr == null) {
 		        $expr = $mulExpr.expr;
 		    } else {
@@ -307,7 +307,7 @@ grammar Smoola;
     expressionMultTemp returns [Expression expr, BinaryOperator synOp]:
 		op = ('*' | '/') unaryExpr = expressionUnary mulTempExpr = expressionMultTemp
 		{
-			$synOp = ($op.text == "*" ? BinaryOperator.mult : BinaryOperator.div);
+			$synOp = ($op.text.equals("*") ? BinaryOperator.mult : BinaryOperator.div);
 		    if ($mulTempExpr.expr == null) {
 		        $expr = $unaryExpr.expr;
 		    } else {
@@ -324,7 +324,7 @@ grammar Smoola;
     expressionUnary returns [Expression expr]:
 		op = ('!' | '-') unaryExpr = expressionUnary
 		{
-		    UnaryOperator unaryOp = ($op.text == "!" ? UnaryOperator.not : UnaryOperator.minus);
+		    UnaryOperator unaryOp = ($op.text.equals("!") ? UnaryOperator.not : UnaryOperator.minus);
 		    $expr = new UnaryExpression(unaryOp, $unaryExpr.expr);
 		}
 	    |	memExpr = expressionMem
