@@ -23,10 +23,14 @@ grammar Smoola;
 
     mainClass returns [ClassDeclaration mainClassDec]:
         // name should be checked later
-        'class' className = ID { $mainClassDec = new ClassDeclaration(new Identifier($className.text), null); }
+        'class' className = ID {
+            $mainClassDec = new ClassDeclaration(new Identifier($className.text), null);
+            $mainClassDec.setLine($className.getLine());
+        }
         '{' 'def' methodName = ID '(' ')' ':' 'int' '{'  stmnts = statements 'return' returnExpr = expression ';' '}' '}'
         {
             MethodDeclaration methodDec = new MethodDeclaration(new Identifier($methodName.text));
+            methodDec.setLine($methodName.getLine());
             for (Statement stmnt : $stmnts.stmnts)
                 methodDec.addStatement(stmnt);
             methodDec.setReturnType(new IntType());
@@ -39,6 +43,7 @@ grammar Smoola;
         'class' className = ID ('extends' parentName = ID)?
         {
             $classDec = new ClassDeclaration(new Identifier($className.text), new Identifier($parentName.text));
+            $classDec.setLine($className.getLine());
         }
         '{' (varDec = varDeclaration { $classDec.addVarDeclaration($varDec.varDec); } )*
         (methodDec = methodDeclaration { $classDec.addMethodDeclaration($methodDec.methodDec); } )* '}'
@@ -46,14 +51,28 @@ grammar Smoola;
 
     varDeclaration returns [VarDeclaration varDec]:
         'var' name = ID ':' varType = type ';'
-        { $varDec = new VarDeclaration(new Identifier($name.text), $varType.synType); }
+        {
+            $varDec = new VarDeclaration(new Identifier($name.text), $varType.synType);
+            $varDec.setLine($name.getLine());
+        }
     ;
 
     methodDeclaration returns [MethodDeclaration methodDec]:
-        'def' name = ID { $methodDec = new MethodDeclaration(new Identifier($name.text)); }
+        'def' name = ID {
+            $methodDec = new MethodDeclaration(new Identifier($name.text));
+            $methodDec.setLine($name.getLine());
+        }
         ('(' ')'
-        | ('(' argName1 = ID ':' argType1 = type { $methodDec.addArg(new VarDeclaration(new Identifier($argName1.text), $argType1.synType)); }
-        (',' argName2 = ID ':' argType2 = type { $methodDec.addArg(new VarDeclaration(new Identifier($argName2.text), $argType2.synType)); })* ')'))
+        | ('(' argName1 = ID ':' argType1 = type {
+            VarDeclaration var1 = new VarDeclaration(new Identifier($argName1.text), $argType1.synType);
+            var1.setLine($argName1.getLine());
+            $methodDec.addArg(var1);
+        }
+        (',' argName2 = ID ':' argType2 = type {
+            VarDeclaration var2 = new VarDeclaration(new Identifier($argName2.text), $argType2.synType);
+            var2.setLine($argName2.getLine());
+            $methodDec.addArg(var2);
+        })* ')'))
         ':' returnType = type { $methodDec.setReturnType($returnType.synType); }
         '{' (varDec = varDeclaration { $methodDec.addLocalVar($varDec.varDec); })*
         stmnts = statements {
@@ -366,8 +385,9 @@ grammar Smoola;
         |   'new ' 'int' '[' size = CONST_NUM ']'
             {
                 NewArray tmp = new NewArray();
-                tmp.setExpression(new StringValue("test", new StringType()));
+                tmp.setExpression(new IntValue($size.int, new IntType()));
                 $expr = tmp;
+                $expr.setLine($size.getLine());
             }
         |   'new ' className = ID '(' ')' { $expr = new NewClass(new Identifier($className.text)); }
         |   'this' { $expr = new This(); }

@@ -58,6 +58,7 @@ public class VisitorImpl implements Visitor {
             SymbolTable symbolTable = new SymbolTable(SymbolTable.top);
             SymbolTable.push(symbolTable);
 
+            classDeclaration.getName().accept(this);
             for (VarDeclaration varDec : classDeclaration.getVarDeclarations()) {
                 varDec.accept(this);
             }
@@ -77,7 +78,9 @@ public class VisitorImpl implements Visitor {
         SymbolTable symbolTable = new SymbolTable(SymbolTable.top);
         SymbolTable.push(symbolTable);
 
-        for (VarDeclaration arg : methodDeclaration.getArgs()) {
+        methodDeclaration.getName().accept(this);
+
+        for (VarDeclaration arg: methodDeclaration.getArgs()) {
             arg.accept(this);
         }
         for (VarDeclaration localVar : methodDeclaration.getLocalVars()) {
@@ -86,6 +89,7 @@ public class VisitorImpl implements Visitor {
         for (Statement statement : methodDeclaration.getBody()) {
             statement.accept(this);
         }
+        methodDeclaration.getReturnValue().accept(this);
 
         SymbolTable.pop();
     }

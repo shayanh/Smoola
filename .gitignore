@@ -127,3 +127,5 @@ src/main/SmoolaLexer.java
 src/main/SmoolaLexer.tokens
 src/main/SmoolaListener.java
 src/main/SmoolaParser.java
+
+.DS_Store
