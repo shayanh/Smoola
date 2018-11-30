@@ -365,9 +365,9 @@ grammar Smoola;
         |	str = CONST_STR { $expr = new StringValue($str.text, new StringType()); }
         |   'new ' 'int' '[' size = CONST_NUM ']'
             {
-                $expr = new NewArray();
-//                Expression tmp = new NewArray();
-//                tmp.setExpression(new StringValue("test", new StringType()));
+                NewArray tmp = new NewArray();
+                tmp.setExpression(new StringValue("test", new StringType()));
+                $expr = tmp;
             }
         |   'new ' className = ID '(' ')' { $expr = new NewClass(new Identifier($className.text)); }
         |   'this' { $expr = new This(); }
@@ -401,8 +401,9 @@ grammar Smoola;
 	    |
 	    identifier = ID
 	    {
-	        $synType = new UserDefinedType();
-//	        $synType.setName(new Identifier($identifier.text));
+	        UserDefinedType tmp = new UserDefinedType();
+	        tmp.setName(new Identifier($identifier.text));
+	        $synType = tmp;
         }
 	;
 
