@@ -9,16 +9,18 @@ import ast.node.expression.Value.BooleanValue;
 import ast.node.expression.Value.IntValue;
 import ast.node.expression.Value.StringValue;
 import ast.node.statement.*;
+import symbolTable.ItemAlreadyExistsException;
 import symbolTable.SymbolTable;
+import symbolTable.SymbolTableClassItem;
 
 public class VisitorImpl implements Visitor {
 
     private Pass pass;
-    private SymbolTable symbolTable;
+    boolean hasError;
 
     public VisitorImpl() {
         pass = Pass.First;
-        symbolTable = new SymbolTable();
+        hasError = false;
     }
 
     public void setPass(Pass newPass) {
@@ -29,6 +31,10 @@ public class VisitorImpl implements Visitor {
     public void visit(Program program) {
         if (pass == Pass.PrintOrder)
             System.out.println(program.toString());
+        if (pass == Pass.First) {
+            SymbolTable symbolTable = new SymbolTable();
+            SymbolTable.push(symbolTable);
+        }
         program.getMainClass().accept(this);
         for (ClassDeclaration classDec : program.getClasses()) {
             classDec.accept(this);
@@ -39,11 +45,24 @@ public class VisitorImpl implements Visitor {
     public void visit(ClassDeclaration classDeclaration) {
         if (pass == Pass.PrintOrder)
             System.out.println(classDeclaration.toString());
-        for (VarDeclaration varDec : classDeclaration.getVarDeclarations()) {
-            varDec.accept(this);
+
+        if (pass == Pass.First) {
+            SymbolTableClassItem symbolTableClassItem = new SymbolTableClassItem(classDeclaration.getName().getName());
+            try {
+                SymbolTable.top.put(symbolTableClassItem);
+            } catch (ItemAlreadyExistsException e) {
+                ErrorLogger.log("Redefinition of class "+classDeclaration.getName().getName(), classDeclaration);
+                hasError = true;
+            }
         }
-        for (MethodDeclaration methodDec : classDeclaration.getMethodDeclarations()) {
-            methodDec.accept(this);
+
+        if (pass != Pass.First) {
+            for (VarDeclaration varDec : classDeclaration.getVarDeclarations()) {
+                varDec.accept(this);
+            }
+            for (MethodDeclaration methodDec : classDeclaration.getMethodDeclarations()) {
+                methodDec.accept(this);
+            }
         }
     }
 

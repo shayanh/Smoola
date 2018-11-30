@@ -1,5 +1,5 @@
 package ast;
 
 public enum Pass {
-    PrintOrder, First;
+    PrintOrder, First
 }
