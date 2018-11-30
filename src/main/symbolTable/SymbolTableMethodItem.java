@@ -15,6 +15,6 @@ public class SymbolTableMethodItem extends SymbolTableItem {
 
     @Override
     public String getKey() {
-        return name;
+        return "$METHOD$" + name;
     }
 }

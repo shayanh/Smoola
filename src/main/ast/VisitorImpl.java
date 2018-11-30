@@ -9,14 +9,12 @@ import ast.node.expression.Value.BooleanValue;
 import ast.node.expression.Value.IntValue;
 import ast.node.expression.Value.StringValue;
 import ast.node.statement.*;
-import symbolTable.ItemAlreadyExistsException;
-import symbolTable.SymbolTable;
-import symbolTable.SymbolTableClassItem;
+import symbolTable.*;
 
 public class VisitorImpl implements Visitor {
 
     private Pass pass;
-    boolean hasError;
+    private boolean hasError;
 
     public VisitorImpl() {
         pass = Pass.First;
@@ -57,12 +55,17 @@ public class VisitorImpl implements Visitor {
         }
 
         if (pass != Pass.First) {
+            SymbolTable symbolTable = new SymbolTable(SymbolTable.top);
+            SymbolTable.push(symbolTable);
+
             for (VarDeclaration varDec : classDeclaration.getVarDeclarations()) {
                 varDec.accept(this);
             }
             for (MethodDeclaration methodDec : classDeclaration.getMethodDeclarations()) {
                 methodDec.accept(this);
             }
+
+            SymbolTable.pop();
         }
     }
 
@@ -70,6 +73,10 @@ public class VisitorImpl implements Visitor {
     public void visit(MethodDeclaration methodDeclaration) {
         if (pass == Pass.PrintOrder)
             System.out.println(methodDeclaration.toString());
+
+        SymbolTable symbolTable = new SymbolTable(SymbolTable.top);
+        SymbolTable.push(symbolTable);
+
         for (VarDeclaration arg : methodDeclaration.getArgs()) {
             arg.accept(this);
         }
@@ -79,6 +86,8 @@ public class VisitorImpl implements Visitor {
         for (Statement statement : methodDeclaration.getBody()) {
             statement.accept(this);
         }
+
+        SymbolTable.pop();
     }
 
     @Override
@@ -86,6 +95,15 @@ public class VisitorImpl implements Visitor {
         if (pass == Pass.PrintOrder)
             System.out.println(varDeclaration.toString());
         varDeclaration.getIdentifier().accept(this);
+
+        String varName = varDeclaration.getIdentifier().getName();
+        SymbolTableVariableItem symbolTableVariableItem = new SymbolTableVariableItem(varName, varDeclaration.getType());
+        try {
+            SymbolTable.top.put(symbolTableVariableItem);
+        } catch (ItemAlreadyExistsException e) {
+            ErrorLogger.log("Redefinition of variable "+varName, varDeclaration);
+            hasError = true;
+        }
     }
 
     @Override

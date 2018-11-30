@@ -1,5 +1,6 @@
 import java.io.IOException;
 
+import ast.Pass;
 import ast.VisitorImpl;
 import ast.node.Program;
 import org.antlr.v4.runtime.*;
@@ -13,6 +14,8 @@ public class mySmoola {
         Program prog = parser.program().prog; // program is the name of the start rule
 
         VisitorImpl v = new VisitorImpl();
+        prog.accept(v);
+        v.setPass(Pass.Second);
         prog.accept(v);
     }
 }

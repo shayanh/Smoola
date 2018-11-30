@@ -6,7 +6,8 @@ public class SymbolTableClassItem extends SymbolTableItem {
         this.name = name;
     }
 
+    @Override
     public String getKey() {
-        return name;
+        return "$CLASS$" + name;
     }
 }
