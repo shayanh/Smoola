@@ -68,7 +68,7 @@ public class VisitorImpl implements Visitor {
         SymbolTable symbolTable = new SymbolTable(SymbolTable.top);
         SymbolTable.push(symbolTable);
 
-        if (pass == Pass.Second && classDeclaration.getParentName() != null) {
+        if (pass == Pass.Second && classDeclaration.getParentName() != null && classDeclaration.getParentName().getName() != null) {
             String parName = classDeclaration.getParentName().getName();
             ClassDeclaration x = classDecMap.get(parName);
             while (x != null) {
@@ -90,6 +90,9 @@ public class VisitorImpl implements Visitor {
         }
 
         classDeclaration.getName().accept(this);
+        if (classDeclaration.getParentName() != null && classDeclaration.getParentName().getName() != null) {
+            classDeclaration.getParentName().accept(this);
+        }
         for (VarDeclaration varDec : classDeclaration.getVarDeclarations()) {
             varDec.accept(this);
         }
@@ -254,8 +257,13 @@ public class VisitorImpl implements Visitor {
     public void visit(Assign assign) {
         if (pass == Pass.PrintOrder)
             System.out.println(assign.toString());
-        assign.getlValue().accept(this);
-        assign.getrValue().accept(this);
+
+        if (assign.getlValue() != null) {
+            assign.getlValue().accept(this);
+        }
+        if (assign.getrValue() != null) {
+            assign.getrValue().accept(this);
+        }
     }
 
     @Override

@@ -110,11 +110,11 @@ grammar Smoola;
     ;
 
     statementCondition returns [Conditional cond]:
-        'if' '(' expr = expression ')' 'then' cons = statement ('else' alt = statement)?
+        'if' '(' expr = expression ')' 'then' cons = statement
         {
             $cond = new Conditional($expr.expr, $cons.stmnt);
-            $cond.setAlternativeBody($alt.stmnt);
         }
+        ('else' alt = statement { $cond.setAlternativeBody($alt.stmnt); } )?
     ;
 
     statementLoop returns [While loop]:
@@ -134,7 +134,11 @@ grammar Smoola;
     statementAssignment returns [Assign assign]:
         expr = expression ';'
         {
-            $assign = new Assign($expr.assignExpr.getLeft(), $expr.assignExpr.getRight());
+            if ($expr.assignExpr != null) {
+                $assign = new Assign($expr.assignExpr.getLeft(), $expr.assignExpr.getRight());
+            } else {
+                $assign = new Assign(null, null);
+            }
         }
     ;
 
