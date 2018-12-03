@@ -104,7 +104,7 @@ public class VisitorImpl implements Visitor {
         if (pass == Pass.First) {
             classSymbolTable.put(classDeclaration.getName().getName(), symbolTable);
         }
-}
+    }
 
     @Override
     public void visit(MethodDeclaration methodDeclaration) {
