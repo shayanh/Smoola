@@ -1,5 +1,10 @@
 package ast;
 
+import ast.Type.ArrayType.ArrayType;
+import ast.Type.NoType;
+import ast.Type.PrimitiveType.IntType;
+import ast.Type.Type;
+import ast.Type.UserDefinedType.UserDefinedType;
 import ast.node.Program;
 import ast.node.declaration.ClassDeclaration;
 import ast.node.declaration.MethodDeclaration;
@@ -11,6 +16,7 @@ import ast.node.expression.Value.StringValue;
 import ast.node.statement.*;
 import symbolTable.*;
 
+import javax.jws.soap.SOAPBinding;
 import java.util.HashMap;
 
 public class VisitorImpl implements Visitor {
@@ -37,11 +43,19 @@ public class VisitorImpl implements Visitor {
 
     @Override
     public void visit(Program program) {
-        if (pass == Pass.PrintOrder)
-            System.out.println(program.toString());
         if (pass == Pass.First) {
             SymbolTable symbolTable = new SymbolTable();
             SymbolTable.push(symbolTable);
+
+            SymbolTableClassItem objectClassItem = new SymbolTableClassItem("Object");
+            try {
+                SymbolTable.top.put(objectClassItem);
+            } catch (ItemAlreadyExistsException e) {
+                e.printStackTrace();
+            }
+            ClassDeclaration objectClassDec = new ClassDeclaration(new Identifier("Object"), new Identifier(""));
+            classDecMap.put("Object", objectClassDec);
+            classSymbolTable.put("Object", new SymbolTable());
         }
         program.getMainClass().accept(this);
         for (ClassDeclaration classDec : program.getClasses()) {
@@ -51,9 +65,6 @@ public class VisitorImpl implements Visitor {
 
     @Override
     public void visit(ClassDeclaration classDeclaration) {
-        if (pass == Pass.PrintOrder)
-            System.out.println(classDeclaration.toString());
-
         if (pass == Pass.First) {
             SymbolTableClassItem symbolTableClassItem = new SymbolTableClassItem(classDeclaration.getName().getName());
             try {
@@ -69,9 +80,10 @@ public class VisitorImpl implements Visitor {
         SymbolTable symbolTable = new SymbolTable(SymbolTable.top);
         SymbolTable.push(symbolTable);
 
-        if (pass == Pass.Second && classDeclaration.getParentName() != null && classDeclaration.getParentName().getName() != null) {
+        if ((pass == Pass.Second || pass == Pass.Third) && classDeclaration.hasParent()) {
             String parName = classDeclaration.getParentName().getName();
             ClassDeclaration x = classDecMap.get(parName);
+            classDeclaration.setParentClass(x);
             while (x != null) {
                 SymbolTable s = classSymbolTable.get(x.getName().getName());
                 for (SymbolTableItem symbolTableItem : s.getItems().values()) {
@@ -90,9 +102,8 @@ public class VisitorImpl implements Visitor {
             }
         }
 
-        classDeclaration.getName().accept(this);
-        if (classDeclaration.getParentName() != null && classDeclaration.getParentName().getName() != null) {
-            classDeclaration.getParentName().accept(this);
+        if (classDeclaration.hasParent() && pass == Pass.Third) {
+            // TODO: check parent class is defined
         }
         for (VarDeclaration varDec : classDeclaration.getVarDeclarations()) {
             varDec.accept(this);
@@ -109,9 +120,6 @@ public class VisitorImpl implements Visitor {
 
     @Override
     public void visit(MethodDeclaration methodDeclaration) {
-        if (pass == Pass.PrintOrder)
-            System.out.println(methodDeclaration.toString());
-
         String methodName = methodDeclaration.getName().getName();
         SymbolTableMethodItem symbolTableMethodItem = new SymbolTableMethodItem(methodName, null);
         try {
@@ -123,31 +131,54 @@ public class VisitorImpl implements Visitor {
             hasError = true;
         }
 
-        if (pass != Pass.First) {
-            SymbolTable symbolTable = new SymbolTable(SymbolTable.top);
-            SymbolTable.push(symbolTable);
-
-            methodDeclaration.getName().accept(this);
-            for (VarDeclaration arg : methodDeclaration.getArgs()) {
-                arg.accept(this);
-            }
-            for (VarDeclaration localVar : methodDeclaration.getLocalVars()) {
-                localVar.accept(this);
-            }
-            for (Statement statement : methodDeclaration.getBody()) {
-                statement.accept(this);
-            }
-            methodDeclaration.getReturnValue().accept(this);
-
-            SymbolTable.pop();
+        if (pass == Pass.First) {
+            return;
         }
+
+        SymbolTable symbolTable = new SymbolTable(SymbolTable.top);
+        SymbolTable.push(symbolTable);
+
+        for (VarDeclaration arg : methodDeclaration.getArgs()) {
+            arg.accept(this);
+        }
+        for (VarDeclaration localVar : methodDeclaration.getLocalVars()) {
+            localVar.accept(this);
+        }
+        for (Statement statement : methodDeclaration.getBody()) {
+            statement.accept(this);
+        }
+        methodDeclaration.getReturnValue().accept(this);
+
+        if (pass == Pass.Third) {
+            if (methodDeclaration.getReturnValue().getType().subtype(methodDeclaration.getReturnType())) {
+                String msg = methodName + " return type must be " + methodDeclaration.getReturnType().toString();
+                ErrorLogger.log(msg, methodDeclaration.getReturnValue());
+                hasError = true;
+            }
+        }
+
+        SymbolTable.pop();
     }
 
     @Override
     public void visit(VarDeclaration varDeclaration) {
-        if (pass == Pass.PrintOrder)
-            System.out.println(varDeclaration.toString());
-        varDeclaration.getIdentifier().accept(this);
+        if (pass == Pass.Second || pass == Pass.Third) {
+            if (varDeclaration.getType() instanceof UserDefinedType) {
+                UserDefinedType typ = new UserDefinedType();
+                Identifier className = ((UserDefinedType) varDeclaration.getType()).getName();
+                ClassDeclaration classDec = classDecMap.get(className.getName());
+                if (classDec != null) {
+                    typ.setName(className);
+                    typ.setClassDeclaration(classDec);
+                    varDeclaration.setType(typ);
+                } else {
+                    varDeclaration.setType(new NoType());
+                    if (pass == pass.Third) {
+                        // TODO print error
+                    }
+                }
+            }
+        }
 
         String varName = varDeclaration.getIdentifier().getName();
         SymbolTableVariableItem symbolTableVariableItem = new SymbolTableVariableItem(varName, varDeclaration.getType());
@@ -163,18 +194,26 @@ public class VisitorImpl implements Visitor {
 
     @Override
     public void visit(ArrayCall arrayCall) {
-        if (pass == Pass.PrintOrder)
-            System.out.println(arrayCall.toString());
         arrayCall.getInstance().accept(this);
         arrayCall.getIndex().accept(this);
+
+        if (pass == Pass.Third) {
+            if (!arrayCall.getInstance().getType().subtype(new ArrayType())) {
+                ErrorLogger.log("", arrayCall); // TODO
+            }
+            if (!arrayCall.getIndex().getType().subtype(new IntType())) {
+                ErrorLogger.log("", arrayCall); // TODO
+            }
+        }
     }
 
     @Override
     public void visit(BinaryExpression binaryExpression) {
-        if (pass == Pass.PrintOrder)
-            System.out.println(binaryExpression.toString());
         binaryExpression.getLeft().accept(this);
         binaryExpression.getRight().accept(this);
+
+        if (pass == Pass.Third) {
+        }
     }
 
     @Override
