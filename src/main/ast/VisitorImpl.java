@@ -213,6 +213,14 @@ public class VisitorImpl implements Visitor {
         binaryExpression.getRight().accept(this);
 
         if (pass == Pass.Third) {
+            BinaryOperator op = binaryExpression.getBinaryOperator();
+            if (op == BinaryOperator.mult || op == BinaryOperator.div || op == BinaryOperator.add ||
+                    op == BinaryOperator.sub || op == BinaryOperator.gt || op == BinaryOperator.lt) {
+                if (!binaryExpression.getLeft().getType().subtype(new IntType())
+                        || !binaryExpression.getRight().getType().subtype(new IntType())) {
+                    ErrorLogger.log("");
+                }
+            }
         }
     }
 
