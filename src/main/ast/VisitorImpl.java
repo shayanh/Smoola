@@ -61,6 +61,7 @@ public class VisitorImpl implements Visitor {
             } catch (ItemAlreadyExistsException e) {
                 ErrorLogger.log("Redefinition of class "+classDeclaration.getName().getName(), classDeclaration);
                 hasError = true;
+                classDeclaration.setName(new Identifier("Temporary_" + classDeclaration.getName().getName() + "_1"));
             }
             classDecMap.put(classDeclaration.getName().getName(), classDeclaration);
         }
