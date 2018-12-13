@@ -8,6 +8,7 @@ import java.util.ArrayList;
 public class ClassDeclaration extends Declaration{
     private Identifier name;
     private Identifier parentName;
+    private ClassDeclaration parentClass;
     private ArrayList<VarDeclaration> varDeclarations = new ArrayList<>();
     private ArrayList<MethodDeclaration> methodDeclarations = new ArrayList<>();
 
@@ -48,6 +49,10 @@ public class ClassDeclaration extends Declaration{
         this.methodDeclarations.add(methodDeclaration);
     }
 
+    public boolean hasParent() {
+        return this.getParentName() != null && this.getParentName().getName() != null;
+    }
+
     @Override
     public String toString() {
         return "ClassDeclaration";
@@ -55,5 +60,13 @@ public class ClassDeclaration extends Declaration{
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
+    }
+
+    public ClassDeclaration getParentClass() {
+        return parentClass;
+    }
+
+    public void setParentClass(ClassDeclaration parentClass) {
+        this.parentClass = parentClass;
     }
 }
