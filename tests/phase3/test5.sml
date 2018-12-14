@@ -205,7 +205,7 @@ class Test9 {
 
     def testArr() : int {
         arr = new int[100];
-        i = arr;
+        i = arr; #error
 
         return 5;
     }

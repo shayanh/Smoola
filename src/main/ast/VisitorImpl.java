@@ -403,7 +403,7 @@ public class VisitorImpl implements Visitor {
         }
 
         if (pass == Pass.Third) {
-            newArray.setType(new IntType());
+            newArray.setType(new ArrayType());
         }
     }
 
