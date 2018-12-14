@@ -24,12 +24,16 @@ grammar Smoola;
     mainClass returns [ClassDeclaration mainClassDec]:
         // name should be checked later
         'class' className = ID {
-            $mainClassDec = new ClassDeclaration(new Identifier($className.text), null);
+            Identifier identifier = new Identifier($className.text);
+            identifier.setLine($className.getLine());
+            $mainClassDec = new ClassDeclaration(identifier, null);
             $mainClassDec.setLine($className.getLine());
         }
         '{' 'def' methodName = ID '(' ')' ':' 'int' '{'  stmnts = statements 'return' returnExpr = expression ';' '}' '}'
         {
-            MethodDeclaration methodDec = new MethodDeclaration(new Identifier($methodName.text));
+            Identifier identifier = new Identifier($methodName.text);
+            identifier.setLine($methodName.getLine());
+            MethodDeclaration methodDec = new MethodDeclaration(identifier);
             methodDec.setLine($methodName.getLine());
             for (Statement stmnt : $stmnts.stmnts)
                 methodDec.addStatement(stmnt);
@@ -42,7 +46,11 @@ grammar Smoola;
     classDeclaration returns [ClassDeclaration classDec]:
         'class' className = ID ('extends' parentName = ID)?
         {
-            $classDec = new ClassDeclaration(new Identifier($className.text), new Identifier($parentName.text));
+            Identifier classId = new Identifier($className.text);
+            classId.setLine($className.getLine());
+            Identifier parentId = new Identifier($parentName.text);
+            parentId.setLine($parentName.getLine());
+            $classDec = new ClassDeclaration(classId, parentId);
             $classDec.setLine($className.getLine());
         }
         '{' (varDec = varDeclaration { $classDec.addVarDeclaration($varDec.varDec); } )*
@@ -52,24 +60,32 @@ grammar Smoola;
     varDeclaration returns [VarDeclaration varDec]:
         'var' name = ID ':' varType = type ';'
         {
-            $varDec = new VarDeclaration(new Identifier($name.text), $varType.synType);
+            Identifier identifier = new Identifier($name.text);
+            identifier.setLine($name.getLine());
+            $varDec = new VarDeclaration(identifier, $varType.synType);
             $varDec.setLine($name.getLine());
         }
     ;
 
     methodDeclaration returns [MethodDeclaration methodDec]:
         'def' name = ID {
-            $methodDec = new MethodDeclaration(new Identifier($name.text));
+            Identifier methodId = new Identifier($name.text);
+            identifier.setLine($name.getLine());
+            $methodDec = new MethodDeclaration(methodId);
             $methodDec.setLine($name.getLine());
         }
         ('(' ')'
         | ('(' argName1 = ID ':' argType1 = type {
-            VarDeclaration var1 = new VarDeclaration(new Identifier($argName1.text), $argType1.synType);
+            Identifier argId1 = new Identifier($argName1.text);
+            identifier.setLine($argName1.getLine());
+            VarDeclaration var1 = new VarDeclaration(argId1, $argType1.synType);
             var1.setLine($argName1.getLine());
             $methodDec.addArg(var1);
         }
         (',' argName2 = ID ':' argType2 = type {
-            VarDeclaration var2 = new VarDeclaration(new Identifier($argName2.text), $argType2.synType);
+            Identifier argId2 = new Identifier($argName2.text);
+            identifier.setLine($argName2.getLine());
+            VarDeclaration var2 = new VarDeclaration(argId2, $argType2.synType);
             var2.setLine($argName2.getLine());
             $methodDec.addArg(var2);
         })* ')'))
@@ -113,6 +129,7 @@ grammar Smoola;
         'if' '(' expr = expression ')' 'then' cons = statement
         {
             $cond = new Conditional($expr.expr, $cons.stmnt);
+            $cond.setLine($expr.getLine());
         }
         ('else' alt = statement { $cond.setAlternativeBody($alt.stmnt); } )?
     ;
@@ -121,6 +138,7 @@ grammar Smoola;
         'while' '(' condExpr = expression ')' body = statement
         {
             $loop = new While($condExpr.expr, $body.stmnt);
+            $loop.setLine($condExpr.getLine());
         }
     ;
 
@@ -128,6 +146,7 @@ grammar Smoola;
         'writeln(' arg = expression ')' ';'
         {
             $write = new Write($arg.expr);
+            $write.setLine($arg.getLine());
         }
     ;
 
@@ -136,6 +155,7 @@ grammar Smoola;
         {
             if ($expr.assignExpr != null) {
                 $assign = new Assign($expr.assignExpr.getLeft(), $expr.assignExpr.getRight());
+                $assign.setLine($expr.assignExpr.getLeft().getLine());
             } else {
                 $assign = new Assign(null, null);
             }
@@ -155,6 +175,7 @@ grammar Smoola;
 		{
 		    $assignExpr = new BinaryExpression($leftExpr.expr, $rightExpr.expr, BinaryOperator.assign);
 		    $expr = $assignExpr;
+		    $expr.setLine($leftExpr.getLine());
 		}
 	    |	expr1 = expressionOr
 	    {
@@ -169,6 +190,7 @@ grammar Smoola;
 		        $expr = $andExpr.expr;
 		    } else {
 		        $expr = new BinaryExpression($andExpr.expr, $orTempExpr.expr, BinaryOperator.or);
+		        $expr.setLine($andExpr.getLine());
 		    }
 		}
 	;
@@ -180,6 +202,7 @@ grammar Smoola;
 		        $expr = $andExpr.expr;
 		    } else {
 		        $expr = new BinaryExpression($andExpr.expr, $orTempExpr.expr, BinaryOperator.or);
+		        $expr.setLine($andExpr.getLine());
 		    }
 		}
 	    |
@@ -195,6 +218,7 @@ grammar Smoola;
 		        $expr = $eqExpr.expr;
 		    } else {
 		        $expr = new BinaryExpression($eqExpr.expr, $andTempExpr.expr, BinaryOperator.and);
+		        $expr.setLine($eqExpr.getLine());
 		    }
 		}
 	;
@@ -206,6 +230,7 @@ grammar Smoola;
 		        $expr = $eqExpr.expr;
 		    } else {
 		        $expr = new BinaryExpression($eqExpr.expr, $andTempExpr.expr, BinaryOperator.and);
+		        $expr.setLine($eqExpr.getLine());
 		    }
 		}
 	    |
@@ -221,6 +246,7 @@ grammar Smoola;
 		        $expr = $cmpExpr.expr;
 		    } else {
 		        $expr = new BinaryExpression($cmpExpr.expr, $eqTempExpr.expr, $eqTempExpr.synOp);
+		        $expr.setLine($cmpExpr.getLine());
 		    }
 		}
 	;
@@ -236,6 +262,7 @@ grammar Smoola;
 		        $expr = $cmpExpr.expr;
 		    } else {
 		        $expr = new BinaryExpression($cmpExpr.expr, $eqTempExpr.expr, $eqTempExpr.synOp);
+		        $expr.setLine($cmpExpr.getLine());
 		    }
 		}
 	    |
@@ -252,6 +279,7 @@ grammar Smoola;
 		        $expr = $addExpr.expr;
 		    } else {
 		        $expr = new BinaryExpression($addExpr.expr, $cmpTempExpr.expr, $cmpTempExpr.synOp);
+		        $expr.setLine($addExpr.getLine());
 		    }
 		}
 	;
@@ -267,6 +295,7 @@ grammar Smoola;
 		        $expr = $addExpr.expr;
 		    } else {
 		        $expr = new BinaryExpression($addExpr.expr, $cmpTempExpr.expr, $cmpTempExpr.synOp);
+		        $expr.setLine($addExpr.getLine());
 		    }
 		}
 	    |
@@ -283,6 +312,7 @@ grammar Smoola;
 		        $expr = $mulExpr.expr;
 		    } else {
 		        $expr = new BinaryExpression($mulExpr.expr, $addTempExpr.expr, $addTempExpr.synOp);
+		        $expr.setLine($mulExpr.getLine());
 		    }
 		}
 	;
@@ -298,6 +328,7 @@ grammar Smoola;
 		        $expr = $mulExpr.expr;
 		    } else {
 		        $expr = new BinaryExpression($mulExpr.expr, $addTempExpr.expr, $addTempExpr.synOp);
+		        $expr.setLine($mulExpr.getLine());
 		    }
 		}
 	    |
@@ -314,6 +345,7 @@ grammar Smoola;
 		        $expr = $unaryExpr.expr;
 		    } else {
 		        $expr = new BinaryExpression($unaryExpr.expr, $mulTempExpr.expr, $mulTempExpr.synOp);
+		        $expr.setLine($unaryExpr.getLine());
 		    }
 		}
 	;
@@ -329,6 +361,7 @@ grammar Smoola;
 		        $expr = $unaryExpr.expr;
 		    } else {
 		        $expr = new BinaryExpression($unaryExpr.expr, $mulTempExpr.expr, $mulTempExpr.synOp);
+		        $expr.setLine($unaryExpr.getLine());
 		    }
 		}
 	    |
@@ -347,6 +380,7 @@ grammar Smoola;
 		    else
 		        unaryOp = UnaryOperator.minus;
 		    $expr = new UnaryExpression(unaryOp, $unaryExpr.expr);
+		    $expr.setLine($op.getLine());
 		}
 	    |	memExpr = expressionMem
 	    {
@@ -361,6 +395,7 @@ grammar Smoola;
 		        $expr = $methodsExpr.expr;
 		    } else {
 		        $expr = new ArrayCall($methodsExpr.expr, $memTempExpr.expr);
+		        $expr.setLine($methodsExpr.getLine());
 		    }
 		}
 	;
@@ -388,11 +423,24 @@ grammar Smoola;
 
 	expressionMethodsTemp [Expression inhInstanceName] returns [Expression expr]:
 	    '.' (
-	        methodName = ID '(' ')' { $expr = new MethodCall($inhInstanceName, new Identifier($methodName.text)); }
-	        | methodName = ID { MethodCall tmp = new MethodCall($inhInstanceName, new Identifier($methodName.text)); }
+	        methodName = ID '(' ')' {
+	            Identifier methodId = new Identifier($methodName.text);
+	            methodId.setLine($methodName.getLine());
+	            $expr = new MethodCall($inhInstanceName, methodId);
+	            $expr.setLine($inhInstanceName.getLine());
+	        }
+	        | methodName = ID {
+	            Identifier methodTmpId = new Identifier($methodName.text);
+	            methodTmpId.setLine($methodName.getLine());
+	            MethodCall tmp = new MethodCall($inhInstanceName, methodTmpId);
+	            tmp.setLine($inhInstanceName.getLine());
+	        }
 	        '(' (arg1 = expression { tmp.addArg($arg1.expr); } (',' arg2 = expression { tmp.addArg($arg2.expr); } )*) ')'
 	        { $expr = tmp; }
-	        | 'length' { $expr = new Length($inhInstanceName); }
+	        | 'length' {
+	            $expr = new Length($inhInstanceName);
+	            $expr.setLine($inhInstanceName.getLine());
+	        }
 	    ) expr1 = expressionMethodsTemp [$expr] { $expr = $expr1.expr; }
 	    |
 	    {
@@ -401,21 +449,42 @@ grammar Smoola;
 	;
 
     expressionOther returns [Expression expr]:
-		num = CONST_NUM { $expr = new IntValue($num.int, new IntType()); }
-        |	str = CONST_STR { $expr = new StringValue($str.text, new StringType()); }
+		num = CONST_NUM {
+		    $expr = new IntValue($num.int, new IntType());
+		    $expr.setLine($num.getLine());
+		}
+        |	str = CONST_STR {
+            $expr = new StringValue($str.text, new StringType());
+            $expr.setLine($str.getLine());
+        }
         |   'new ' 'int' '[' size = CONST_NUM ']'
             {
                 NewArray tmp = new NewArray();
-                tmp.setExpression(new IntValue($size.int, new IntType()));
+                Expression value = new IntValue($size.int, new IntType());
+                value.setLine($size.getLine());
+                tmp.setExpression(value);
                 $expr = tmp;
                 $expr.setLine($size.getLine());
             }
-        |   'new ' className = ID '(' ')' { $expr = new NewClass(new Identifier($className.text)); }
+        |   'new ' className = ID '(' ')' {
+            Identifier id = new Identifier($className.text);
+            id.setLine($className.getLine());
+            $expr = new NewClass(id);
+            $expr.setLine($id.getLine());
+        }
         |   'this' { $expr = new This(); }
         |   'true' { $expr = new BooleanValue(true, new BooleanType()); }
         |   'false' { $expr = new BooleanValue(false, new BooleanType()); }
-        |	name = ID { $expr = new Identifier($name.text); }
-        |   name = ID '[' index = expression ']' { $expr = new ArrayCall(new Identifier($name.text), $index.expr); }
+        |	name = ID {
+            $expr = new Identifier($name.text);
+            $expr.setLine($name.getLine());
+        }
+        |   name = ID '[' index = expression ']' {
+            Identifier id = new Identifier($name.text);
+            id.setLine($name.getLine());
+            $expr = new ArrayCall(id, $index.expr);
+            $expr.setLine($name.getLine());
+        }
         |	'(' ex = expression ')' { $expr = $ex.expr; }
 	;
 
@@ -443,7 +512,9 @@ grammar Smoola;
 	    identifier = ID
 	    {
 	        UserDefinedType tmp = new UserDefinedType();
-	        tmp.setName(new Identifier($identifier.text));
+	        Identifier id = new Identifier($identifier.text);
+	        id.setLine($identifier.getLine());
+	        tmp.setName(id);
 	        $synType = tmp;
         }
 	;

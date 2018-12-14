@@ -18,7 +18,9 @@ import ast.node.expression.Value.StringValue;
 import ast.node.statement.*;
 import symbolTable.*;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 public class VisitorImpl implements Visitor {
 
@@ -26,6 +28,9 @@ public class VisitorImpl implements Visitor {
     private boolean hasError;
     private HashMap<String, SymbolTable> classSymbolTable;
     private HashMap<String, ClassDeclaration> classDecMap;
+
+    List<String> keywords = Arrays.asList("boolean", "string", "int", "class", "def", "then", "if", "writeln",
+            "extends", "var", "this", "false", "true", "while", "else", "return", "new");
 
     public VisitorImpl() {
         pass = Pass.First;
@@ -163,6 +168,18 @@ public class VisitorImpl implements Visitor {
         methodDeclaration.getReturnValue().accept(this);
 
         if (pass == Pass.Third) {
+            if (methodDeclaration.getReturnType() instanceof UserDefinedType) {
+                UserDefinedType typ = new UserDefinedType();
+                Identifier className = ((UserDefinedType) methodDeclaration.getReturnType()).getName();
+                ClassDeclaration classDec = classDecMap.get(className.getName());
+                if (classDec == null) {
+                    ErrorLogger.log("method return type " + className.getName() + " is not valid", methodDeclaration);
+                    classDec = new ClassDeclaration(className, null);
+                }
+                typ.setName(className);
+                typ.setClassDeclaration(classDec);
+                methodDeclaration.setReturnType(typ);
+            }
             if (!methodDeclaration.getReturnValue().getType().subtype(methodDeclaration.getReturnType())) {
                 String msg = methodName + " return type must be " + methodDeclaration.getReturnType().toString();
                 ErrorLogger.log(msg, methodDeclaration.getReturnValue());
@@ -185,15 +202,24 @@ public class VisitorImpl implements Visitor {
                     typ.setClassDeclaration(classDec);
                     varDeclaration.setType(typ);
                 } else {
-                    varDeclaration.setType(new NoType());
                     if (pass == pass.Third) {
-                        // TODO print error
+                        ErrorLogger.log("variable type " + className.getName() + " is not valid", varDeclaration);
+                        varDeclaration.setType(new NoType());
                     }
                 }
             }
         }
 
         String varName = varDeclaration.getIdentifier().getName();
+
+        if (pass == Pass.Third) {
+            if (keywords.contains(varName)) {
+                ErrorLogger.log("variable name cannot be a keyword", varDeclaration);
+                varDeclaration.setType(new NoType());
+                return;
+            }
+        }
+
         SymbolTableVariableItem symbolTableVariableItem = new SymbolTableVariableItem(varName, varDeclaration.getType());
         try {
             SymbolTable.top.put(symbolTableVariableItem);
@@ -212,10 +238,17 @@ public class VisitorImpl implements Visitor {
 
         if (pass == Pass.Third) {
             if (!arrayCall.getInstance().getType().subtype(new ArrayType())) {
-                ErrorLogger.log("", arrayCall); // TODO
+                ErrorLogger.log("instance must be an array", arrayCall);
+                arrayCall.setType(new NoType());
             }
-            if (!arrayCall.getIndex().getType().subtype(new IntType())) {
-                ErrorLogger.log("", arrayCall); // TODO
+            else {
+                if (!arrayCall.getIndex().getType().subtype(new IntType())) {
+                    ErrorLogger.log("index must be an int", arrayCall);
+                    arrayCall.setType(new NoType());
+                }
+                else {
+                    arrayCall.setType(new IntType());
+                }
             }
         }
     }
@@ -238,7 +271,11 @@ public class VisitorImpl implements Visitor {
                     binaryExpression.setType(new NoType());
                 }
                 else {
-                    binaryExpression.setType(new IntType());
+                    if (op == BinaryOperator.mult || op == BinaryOperator.div || op == BinaryOperator.add ||
+                            op == BinaryOperator.sub)
+                        binaryExpression.setType(new IntType());
+                    else
+                        binaryExpression.setType(new BooleanType());
                 }
             }
 
@@ -303,6 +340,14 @@ public class VisitorImpl implements Visitor {
         if (pass == Pass.PrintOrder)
             System.out.println(length.toString());
         length.getExpression().accept(this);
+        if (pass == Pass.Third) {
+            if (!length.getExpression().getType().subtype(new ArrayType())) {
+                ErrorLogger.log("Length argument must be an array", length);
+                length.setType(new NoType());
+            }
+            else
+                length.setType(new IntType());
+        }
     }
 
     @Override
@@ -342,6 +387,10 @@ public class VisitorImpl implements Visitor {
                 ErrorLogger.log("Array length should not be zero or negative", newArray);
             }
             hasError = true;
+        }
+
+        if (pass == Pass.Third) {
+            newArray.setType(new IntType());
         }
     }
 
