@@ -29,7 +29,7 @@ public class VisitorImpl implements Visitor {
     private HashMap<String, SymbolTable> classSymbolTable;
     private HashMap<String, ClassDeclaration> classDecMap;
 
-    List<String> keywords = Arrays.asList("boolean", "string", "int", "class", "def", "then", "if", "writeln",
+    private List<String> keywords = Arrays.asList("boolean", "string", "int", "class", "def", "then", "if", "writeln",
             "extends", "var", "this", "false", "true", "while", "else", "return", "new");
 
     public VisitorImpl() {
@@ -206,7 +206,7 @@ public class VisitorImpl implements Visitor {
                     typ.setClassDeclaration(classDec);
                     varDeclaration.setType(typ);
                 } else {
-                    if (pass == pass.Third) {
+                    if (pass == Pass.Third) {
                         ErrorLogger.log("variable type " + className.getName() + " is not valid", varDeclaration);
                         varDeclaration.setType(new NoType());
                     }
