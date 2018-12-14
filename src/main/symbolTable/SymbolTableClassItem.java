@@ -8,6 +8,6 @@ public class SymbolTableClassItem extends SymbolTableItem {
 
     @Override
     public String getKey() {
-        return "$CLASS$" + name;
+        return name;
     }
 }
