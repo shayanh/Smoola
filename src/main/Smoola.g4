@@ -153,14 +153,14 @@ grammar Smoola;
     ;
 
     statementAssignment returns [Assign assign]:
-        expr = expression ';'
+        expr = expression id = ';'
         {
             if ($expr.assignExpr != null) {
                 $assign = new Assign($expr.assignExpr.getLeft(), $expr.assignExpr.getRight());
-                $assign.setLine($expr.assignExpr.getLine());
             } else {
                 $assign = new Assign(null, null);
             }
+            $assign.setLine($id.getLine());
         }
     ;
 
@@ -501,7 +501,7 @@ grammar Smoola;
             $expr = new ArrayCall(id, $index.expr);
             $expr.setLine($name.getLine());
         }
-        |	'(' ex = expression ')' { $expr = $ex.expr; }
+        |	id = '(' ex = expression ')' { $expr = $ex.expr; $expr.setLine($id.getLine()); }
 	;
 
 	type returns [Type synType]:
