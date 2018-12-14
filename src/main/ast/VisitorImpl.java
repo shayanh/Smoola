@@ -105,6 +105,8 @@ public class VisitorImpl implements Visitor {
             while (x != null) {
                 SymbolTable s = classSymbolTable.get(x.getName().getName());
                 for (SymbolTableItem symbolTableItem : s.getItems().values()) {
+                    if (symbolTableItem.getKey().toString().equals("this"))
+                        continue;
                     try {
                         SymbolTable.top.put(symbolTableItem);
                     } catch (ItemAlreadyExistsException e) {
@@ -126,7 +128,7 @@ public class VisitorImpl implements Visitor {
                         " is not defined", classDeclaration);
             }
         }
-        
+
         for (VarDeclaration varDec : classDeclaration.getVarDeclarations()) {
             varDec.accept(this);
         }
@@ -148,7 +150,7 @@ public class VisitorImpl implements Visitor {
             SymbolTable.top.put(symbolTableMethodItem);
         } catch (ItemAlreadyExistsException e) {
             if (pass == Pass.Second) {
-                ErrorLogger.log("Redefinition of method "+methodName, methodDeclaration);
+                ErrorLogger.log("Redefinition of method "+ methodName, methodDeclaration);
             }
             hasError = true;
         }
@@ -366,6 +368,7 @@ public class VisitorImpl implements Visitor {
         if (pass == Pass.Third) {
                 String instanceType = methodCall.getInstance().getType().toString();
                 ClassDeclaration classDec = classDecMap.get(instanceType);
+                // TODO: What if instance is noType?
                 if (!classDec.containsMethod(methodCall.getMethodName())) {
                     ErrorLogger.log("there is no method named " + methodCall.getMethodName().getName() +
                             " in class " + instanceType, methodCall);
