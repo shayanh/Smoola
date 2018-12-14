@@ -19,6 +19,7 @@ import ast.node.statement.*;
 import symbolTable.*;
 
 //import javax.jws.soap.SOAPBinding;
+import javax.jws.soap.SOAPBinding;
 import java.util.HashMap;
 
 public class VisitorImpl implements Visitor {
@@ -152,7 +153,7 @@ public class VisitorImpl implements Visitor {
         methodDeclaration.getReturnValue().accept(this);
 
         if (pass == Pass.Third) {
-            if (methodDeclaration.getReturnValue().getType().subtype(methodDeclaration.getReturnType())) {
+            if (!methodDeclaration.getReturnValue().getType().subtype(methodDeclaration.getReturnType())) {
                 String msg = methodName + " return type must be " + methodDeclaration.getReturnType().toString();
                 ErrorLogger.log(msg, methodDeclaration.getReturnValue());
                 hasError = true;
@@ -218,13 +219,12 @@ public class VisitorImpl implements Visitor {
             BinaryOperator op = binaryExpression.getBinaryOperator();
             if (op == BinaryOperator.mult || op == BinaryOperator.div || op == BinaryOperator.add ||
                     op == BinaryOperator.sub || op == BinaryOperator.gt || op == BinaryOperator.lt) {
-                if (!binaryExpression.getLeft().getType().subtype(new IntType())
-                        || !binaryExpression.getRight().getType().subtype(new IntType())) {
-                    ErrorLogger.log("unsupported operand type for " + op.name(), binaryExpression);
+                if (!binaryExpression.getLeft().getType().subtype(new IntType())) {
+                    ErrorLogger.log("unsupported operand type for " + op.name(), binaryExpression.getLeft());
                     binaryExpression.setType(new NoType());
                 }
                 else if (!binaryExpression.getRight().getType().subtype(new IntType())) {
-                    ErrorLogger.log("unsupported operand type for " +op.name(), binaryExpression);
+                    ErrorLogger.log("unsupported operand type for " +op.name(), binaryExpression.getRight());
                     binaryExpression.setType(new NoType());
                 }
                 else {
@@ -234,11 +234,11 @@ public class VisitorImpl implements Visitor {
 
             if (op == BinaryOperator.and || op == BinaryOperator.or) {
                 if (!binaryExpression.getLeft().getType().subtype(new BooleanType())) {
-                    ErrorLogger.log("unsupported operand type for " +op.name(), binaryExpression);
+                    ErrorLogger.log("unsupported operand type for " +op.name(), binaryExpression.getLeft());
                     binaryExpression.setType(new NoType());
                 }
-                else if(!binaryExpression.getRight().getType().subtype(new BooleanType())) {
-                    ErrorLogger.log("unsupported operand type for " +op.name(), binaryExpression);
+                else if (!binaryExpression.getRight().getType().subtype(new BooleanType())) {
+                    ErrorLogger.log("unsupported operand type for " +op.name(), binaryExpression.getRight());
                     binaryExpression.setType(new NoType());
                 }
                 else {
@@ -250,9 +250,6 @@ public class VisitorImpl implements Visitor {
 
     @Override
     public void visit(Identifier identifier) {
-        if (pass == Pass.PrintOrder)
-            System.out.println(identifier.toString());
-
         if (pass == Pass.Third) {
             try {
                 //System.out.println(SymbolTable.top.getItems().keySet().toString());
@@ -304,9 +301,18 @@ public class VisitorImpl implements Visitor {
 
     @Override
     public void visit(NewClass newClass) {
-        if (pass == Pass.PrintOrder)
-            System.out.println(newClass.toString());
-        newClass.getClassName().accept(this);
+        if (pass == Pass.Third) {
+            try {
+                SymbolTableClassItem item = (SymbolTableClassItem) SymbolTable.top.get(newClass.getClassName().getName());
+                UserDefinedType typ = new UserDefinedType();
+                typ.setName(newClass.getClassName());
+                typ.setClassDeclaration(classDecMap.get(newClass.getClassName().getName()));
+                newClass.setType(typ);
+            } catch (ItemNotFoundException e) {
+                // TODO print error
+                newClass.setType(new NoType());
+            }
+        }
     }
 
     @Override
