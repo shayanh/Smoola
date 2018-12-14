@@ -1,16 +1,17 @@
 class MainClass {
     def main() : int {
         writeln(new Test8().toString());
-        writeln(new NotDeclaredClass3().toString()); # error
+        #writeln(new NotDeclaredClass3().toString()); # error
+        writeln(new NotDeclaredClass3()); # error
         return 0;
     }
 }
 
 class Test1 {
-    var this: Test1; # error
+        var a: Test1;
 
     def method1() : NotDeclaredClass0 { # error
-        var this: int; # error
+        var a: int;
         this = 5; # error
 
         return 0; # error
@@ -18,9 +19,9 @@ class Test1 {
 }
 
 class Test2 extends NotDeclaredClass1 { # error
-    var this: int; # error
-    var while: string; # error
-    var a: NotDeclaredClass2; # error
+    var a: int;
+    var b: string;
+    var c: NotDeclaredClass2; # error
 
     def method2(t1: int, t2: int[], t3: Test3, t4: Object, t5: NotDeclaredClass4) : int { # error
         this = false; # error
@@ -50,13 +51,16 @@ class Test3 {
     }
 
     def testThis() : int {
+        var a : Test4;
+        a = new Test4();
         this = new Test3();
         this = new Test5();
         this = new Test4() = new Test5(); # error
-        this.i = this.arr.length;
-        this.arr = 4; # error
+        # this.i = this.arr.length;
+        # this.arr = 4; # error
 
-        this.self = this.method12();
+        a = this.method12();
+        return 0;
     }
 }
 
@@ -76,7 +80,7 @@ class Test7 {
     var obj: Object;
     var t3: Test3;
     var t4: Test4;
-    var t5; Test5;
+    var t5: Test5;
 
     def testMethodCall() : int {
         obj = t3.method5();
@@ -91,7 +95,7 @@ class Test7 {
     }
 
     def testMethodCallInMain() : int {
-        t4 = new Test3.method12(); # error
+        t4 = new Test3().method12(); # error
 
         return 0;
     }
@@ -99,7 +103,8 @@ class Test7 {
 
 class Test6 {
     var obj: Object;
-    var i, j: int;
+    var i : int;
+    var j : int;
     var b: boolean;
     var s: string;
     var arr: int[];
@@ -148,6 +153,8 @@ class Test6 {
         b = !b;
         i = -i;
         b = !i; # error
+
+        return 1;
     }
 
     def testVarDecAndLength() : int {
@@ -156,32 +163,38 @@ class Test6 {
         k = s; # error
 
         i = arr.length;
-        i = (new int[10]).length
+        i = (new int[10]).length;
         s = arr.length; # error
         arr.length = 4; # error
+
+        return 2;
     }
 
-    def testCond() {
-        if (b && !b && -i > 10 || j <> 0) {
+    def testCond() : int {
+        if (b && !b && -i > 10 || j <> 0) then {
             while (true || !false)
                 i = 10;
         }
-        if (i || i < 10 || s) # error
+        if (i || i < 10 || s) then # error
             i = 10;
+
+        return 3;
     }
 
-    def testWriteln() {
+    def testWriteln() : int {
         var t8: Test8;
         writeln(i);
         writeln(s);
         writeln(t8.toString());
         writeln(b); # error
         writeln(t1); # error
+
+        return 4;
     }
 }
 
 class Test8 {
-    def toString() {
+    def toString() : string {
         return "Test8";
     }
 }
@@ -190,8 +203,10 @@ class Test9 {
     var arr: int[];
     var i: int;
 
-    def testArr() {
-        arr = new arr[100];
+    def testArr() : int {
+        arr = new int[100];
         i = arr;
+
+        return 5;
     }
 }
