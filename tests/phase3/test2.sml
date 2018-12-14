@@ -22,6 +22,6 @@ class BabyTest {
         else {
             test2 = false;
         }
-        return test2;
+        return test2; # error
     }
 }
