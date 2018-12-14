@@ -24,16 +24,16 @@ grammar Smoola;
     mainClass returns [ClassDeclaration mainClassDec]:
         // name should be checked later
         'class' className = ID {
-            Identifier identifier = new Identifier($className.text);
-            identifier.setLine($className.getLine());
-            $mainClassDec = new ClassDeclaration(identifier, null);
+            Identifier identifier1 = new Identifier($className.text);
+            identifier1.setLine($className.getLine());
+            $mainClassDec = new ClassDeclaration(identifier1, null);
             $mainClassDec.setLine($className.getLine());
         }
         '{' 'def' methodName = ID '(' ')' ':' 'int' '{'  stmnts = statements 'return' returnExpr = expression ';' '}' '}'
         {
-            Identifier identifier = new Identifier($methodName.text);
-            identifier.setLine($methodName.getLine());
-            MethodDeclaration methodDec = new MethodDeclaration(identifier);
+            Identifier identifier2 = new Identifier($methodName.text);
+            identifier2.setLine($methodName.getLine());
+            MethodDeclaration methodDec = new MethodDeclaration(identifier2);
             methodDec.setLine($methodName.getLine());
             for (Statement stmnt : $stmnts.stmnts)
                 methodDec.addStatement(stmnt);
@@ -49,7 +49,9 @@ grammar Smoola;
             Identifier classId = new Identifier($className.text);
             classId.setLine($className.getLine());
             Identifier parentId = new Identifier($parentName.text);
-            parentId.setLine($parentName.getLine());
+            if ($parentName != null) {
+                parentId.setLine($parentName.getLine());
+            }
             $classDec = new ClassDeclaration(classId, parentId);
             $classDec.setLine($className.getLine());
         }
@@ -70,21 +72,21 @@ grammar Smoola;
     methodDeclaration returns [MethodDeclaration methodDec]:
         'def' name = ID {
             Identifier methodId = new Identifier($name.text);
-            identifier.setLine($name.getLine());
+            methodId.setLine($name.getLine());
             $methodDec = new MethodDeclaration(methodId);
             $methodDec.setLine($name.getLine());
         }
         ('(' ')'
         | ('(' argName1 = ID ':' argType1 = type {
             Identifier argId1 = new Identifier($argName1.text);
-            identifier.setLine($argName1.getLine());
+            argId1.setLine($argName1.getLine());
             VarDeclaration var1 = new VarDeclaration(argId1, $argType1.synType);
             var1.setLine($argName1.getLine());
             $methodDec.addArg(var1);
         }
         (',' argName2 = ID ':' argType2 = type {
             Identifier argId2 = new Identifier($argName2.text);
-            identifier.setLine($argName2.getLine());
+            argId2.setLine($argName2.getLine());
             VarDeclaration var2 = new VarDeclaration(argId2, $argType2.synType);
             var2.setLine($argName2.getLine());
             $methodDec.addArg(var2);
@@ -126,27 +128,27 @@ grammar Smoola;
     ;
 
     statementCondition returns [Conditional cond]:
-        'if' '(' expr = expression ')' 'then' cons = statement
+        'if' id = '(' expr = expression ')' 'then' cons = statement
         {
             $cond = new Conditional($expr.expr, $cons.stmnt);
-            $cond.setLine($expr.getLine());
+            $cond.setLine($id.getLine());
         }
         ('else' alt = statement { $cond.setAlternativeBody($alt.stmnt); } )?
     ;
 
     statementLoop returns [While loop]:
-        'while' '(' condExpr = expression ')' body = statement
+        'while' id = '(' condExpr = expression ')' body = statement
         {
             $loop = new While($condExpr.expr, $body.stmnt);
-            $loop.setLine($condExpr.getLine());
+            $loop.setLine($id.getLine());
         }
     ;
 
     statementWrite returns [Write write]:
-        'writeln(' arg = expression ')' ';'
+        id = 'writeln(' arg = expression ')' ';'
         {
             $write = new Write($arg.expr);
-            $write.setLine($arg.getLine());
+            $write.setLine($id.getLine());
         }
     ;
 
@@ -171,11 +173,11 @@ grammar Smoola;
 	;
 
     expressionAssignment returns [Expression expr, BinaryExpression assignExpr]:
-		leftExpr = expressionOr '=' rightExpr = expressionAssignment
+		leftExpr = expressionOr id = '=' rightExpr = expressionAssignment
 		{
 		    $assignExpr = new BinaryExpression($leftExpr.expr, $rightExpr.expr, BinaryOperator.assign);
 		    $expr = $assignExpr;
-		    $expr.setLine($leftExpr.getLine());
+		    $expr.setLine($id.getLine());
 		}
 	    |	expr1 = expressionOr
 	    {
@@ -190,19 +192,19 @@ grammar Smoola;
 		        $expr = $andExpr.expr;
 		    } else {
 		        $expr = new BinaryExpression($andExpr.expr, $orTempExpr.expr, BinaryOperator.or);
-		        $expr.setLine($andExpr.getLine());
+		        $expr.setLine($andExpr.expr.getLine());
 		    }
 		}
 	;
 
     expressionOrTemp returns [Expression expr]:
-		'||' andExpr = expressionAnd orTempExpr = expressionOrTemp
+		id = '||' andExpr = expressionAnd orTempExpr = expressionOrTemp
 		{
 		    if ($orTempExpr.expr == null) {
 		        $expr = $andExpr.expr;
 		    } else {
 		        $expr = new BinaryExpression($andExpr.expr, $orTempExpr.expr, BinaryOperator.or);
-		        $expr.setLine($andExpr.getLine());
+		        $expr.setLine($id.getLine());
 		    }
 		}
 	    |
@@ -218,19 +220,19 @@ grammar Smoola;
 		        $expr = $eqExpr.expr;
 		    } else {
 		        $expr = new BinaryExpression($eqExpr.expr, $andTempExpr.expr, BinaryOperator.and);
-		        $expr.setLine($eqExpr.getLine());
+		        $expr.setLine($eqExpr.expr.getLine());
 		    }
 		}
 	;
 
     expressionAndTemp returns [Expression expr]:
-		'&&' eqExpr = expressionEq andTempExpr = expressionAndTemp
+		id = '&&' eqExpr = expressionEq andTempExpr = expressionAndTemp
 		{
 		    if ($andTempExpr.expr == null) {
 		        $expr = $eqExpr.expr;
 		    } else {
 		        $expr = new BinaryExpression($eqExpr.expr, $andTempExpr.expr, BinaryOperator.and);
-		        $expr.setLine($eqExpr.getLine());
+		        $expr.setLine($id.getLine());
 		    }
 		}
 	    |
@@ -246,7 +248,7 @@ grammar Smoola;
 		        $expr = $cmpExpr.expr;
 		    } else {
 		        $expr = new BinaryExpression($cmpExpr.expr, $eqTempExpr.expr, $eqTempExpr.synOp);
-		        $expr.setLine($cmpExpr.getLine());
+		        $expr.setLine($cmpExpr.expr.getLine());
 		    }
 		}
 	;
@@ -262,7 +264,7 @@ grammar Smoola;
 		        $expr = $cmpExpr.expr;
 		    } else {
 		        $expr = new BinaryExpression($cmpExpr.expr, $eqTempExpr.expr, $eqTempExpr.synOp);
-		        $expr.setLine($cmpExpr.getLine());
+		        $expr.setLine($op.getLine());
 		    }
 		}
 	    |
@@ -279,7 +281,7 @@ grammar Smoola;
 		        $expr = $addExpr.expr;
 		    } else {
 		        $expr = new BinaryExpression($addExpr.expr, $cmpTempExpr.expr, $cmpTempExpr.synOp);
-		        $expr.setLine($addExpr.getLine());
+		        $expr.setLine($addExpr.expr.getLine());
 		    }
 		}
 	;
@@ -295,7 +297,7 @@ grammar Smoola;
 		        $expr = $addExpr.expr;
 		    } else {
 		        $expr = new BinaryExpression($addExpr.expr, $cmpTempExpr.expr, $cmpTempExpr.synOp);
-		        $expr.setLine($addExpr.getLine());
+		        $expr.setLine($op.getLine());
 		    }
 		}
 	    |
@@ -312,7 +314,7 @@ grammar Smoola;
 		        $expr = $mulExpr.expr;
 		    } else {
 		        $expr = new BinaryExpression($mulExpr.expr, $addTempExpr.expr, $addTempExpr.synOp);
-		        $expr.setLine($mulExpr.getLine());
+		        $expr.setLine($mulExpr.expr.getLine());
 		    }
 		}
 	;
@@ -328,7 +330,7 @@ grammar Smoola;
 		        $expr = $mulExpr.expr;
 		    } else {
 		        $expr = new BinaryExpression($mulExpr.expr, $addTempExpr.expr, $addTempExpr.synOp);
-		        $expr.setLine($mulExpr.getLine());
+		        $expr.setLine($op.getLine());
 		    }
 		}
 	    |
@@ -345,7 +347,7 @@ grammar Smoola;
 		        $expr = $unaryExpr.expr;
 		    } else {
 		        $expr = new BinaryExpression($unaryExpr.expr, $mulTempExpr.expr, $mulTempExpr.synOp);
-		        $expr.setLine($unaryExpr.getLine());
+		        $expr.setLine($unaryExpr.expr.getLine());
 		    }
 		}
 	;
@@ -361,7 +363,7 @@ grammar Smoola;
 		        $expr = $unaryExpr.expr;
 		    } else {
 		        $expr = new BinaryExpression($unaryExpr.expr, $mulTempExpr.expr, $mulTempExpr.synOp);
-		        $expr.setLine($unaryExpr.getLine());
+		        $expr.setLine($op.getLine());
 		    }
 		}
 	    |
@@ -395,7 +397,7 @@ grammar Smoola;
 		        $expr = $methodsExpr.expr;
 		    } else {
 		        $expr = new ArrayCall($methodsExpr.expr, $memTempExpr.expr);
-		        $expr.setLine($methodsExpr.getLine());
+		        $expr.setLine($methodsExpr.expr.getLine());
 		    }
 		}
 	;
@@ -470,7 +472,7 @@ grammar Smoola;
             Identifier id = new Identifier($className.text);
             id.setLine($className.getLine());
             $expr = new NewClass(id);
-            $expr.setLine($id.getLine());
+            $expr.setLine($className.getLine());
         }
         |   'this' { $expr = new This(); }
         |   'true' { $expr = new BooleanValue(true, new BooleanType()); }
