@@ -121,8 +121,12 @@ public class VisitorImpl implements Visitor {
         }
 
         if (classDeclaration.hasParent() && pass == Pass.Third) {
-            // TODO: check parent class is defined
+            if (classDecMap.get(classDeclaration.getParentName().getName()) == null) {
+                ErrorLogger.log("parent class " + classDeclaration.getParentName().getName() +
+                        " is not defined", classDeclaration);
+            }
         }
+        
         for (VarDeclaration varDec : classDeclaration.getVarDeclarations()) {
             varDec.accept(this);
         }
@@ -415,14 +419,12 @@ public class VisitorImpl implements Visitor {
         if (pass == Pass.PrintOrder)
             System.out.println(instance.toString());
         if (pass == Pass.Third) {
-            SymbolTableVariableItem item = null;
             try {
-                item = (SymbolTableVariableItem) SymbolTable.top.get("this");
+                SymbolTableVariableItem item = (SymbolTableVariableItem) SymbolTable.top.get("this");
+                instance.setType(item.getType());
             } catch (ItemNotFoundException e) {
                 e.printStackTrace();
             }
-            instance.setType(item.getType());
-            // TODO if item is null must log an error
         }
     }
 
@@ -459,23 +461,26 @@ public class VisitorImpl implements Visitor {
 
     @Override
     public void visit(BooleanValue value) {
-        // TODO ensure have a BooleanType
         if (pass == Pass.PrintOrder)
             System.out.println(value.toString());
+        if (pass == Pass.Third)
+            value.setType(new BooleanType());
     }
 
     @Override
     public void visit(IntValue value) {
-        // TODO ensure have a IntType
         if (pass == Pass.PrintOrder)
             System.out.println(value.toString());
+        if (pass == Pass.Third)
+            value.setType(new IntType());
     }
 
     @Override
     public void visit(StringValue value) {
-        // TODO ensure have a StringType
         if (pass == Pass.PrintOrder)
             System.out.println(value.toString());
+        if (pass == Pass.Third)
+            value.setType(new StringType());
     }
 
     @Override
@@ -483,12 +488,18 @@ public class VisitorImpl implements Visitor {
         if (pass == Pass.PrintOrder)
             System.out.println(assign.toString());
 
-        // TODO if getlValue or getrValue is null must log an error
         if (assign.getlValue() != null) {
             assign.getlValue().accept(this);
         }
+        else {
+            ErrorLogger.log("lvalue cannot be null", assign);
+        }
+
         if (assign.getrValue() != null) {
             assign.getrValue().accept(this);
+        }
+        else {
+            ErrorLogger.log("rvalue cannot be null", assign);
         }
     }
 
