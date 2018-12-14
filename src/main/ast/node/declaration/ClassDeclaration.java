@@ -79,10 +79,8 @@ public class ClassDeclaration extends Declaration{
             }
         }
 
-        if (parentClass != null)
-            return parentClass.containsMethod(methodName);
+        return parentClass != null && parentClass.containsMethod(methodName);
 
-        return false;
     }
 
     public Type getMethodType(Identifier methodName) {
