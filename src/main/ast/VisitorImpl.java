@@ -2,6 +2,7 @@ package ast;
 
 import ast.Type.ArrayType.ArrayType;
 import ast.Type.NoType;
+import ast.Type.ObjectType;
 import ast.Type.PrimitiveType.BooleanType;
 import ast.Type.PrimitiveType.IntType;
 import ast.Type.PrimitiveType.StringType;
@@ -14,6 +15,7 @@ import ast.node.declaration.VarDeclaration;
 import ast.node.expression.*;
 import ast.node.expression.Value.BooleanValue;
 import ast.node.expression.Value.IntValue;
+import ast.node.expression.Value.ObjectValue;
 import ast.node.expression.Value.StringValue;
 import ast.node.statement.*;
 import symbolTable.*;
@@ -302,7 +304,11 @@ public class VisitorImpl implements Visitor {
             if (op == BinaryOperator.eq || op == BinaryOperator.neq) {
                 Type right = binaryExpression.getRight().getType();
                 Type left = binaryExpression.getLeft().getType();
-                if (!(left.subtype(new IntType()) && right.subtype(new IntType())) &&
+                if (left.subtype(new BooleanType()) || right.subtype(new BooleanType())) {
+                    ErrorLogger.log("unsupported operand type for " + op.name(), binaryExpression);
+                    binaryExpression.setType(new NoType());
+                }
+                else if (!(left.subtype(new IntType()) && right.subtype(new IntType())) &&
                         !(left.subtype(new StringType()) && right.subtype(new StringType())) &&
                         !(left.subtype(new ArrayType()) && right.subtype(new ArrayType())) &&
                         !(left.subtype(right) && right.subtype(left))) {
@@ -487,23 +493,30 @@ public class VisitorImpl implements Visitor {
     }
 
     @Override
+    public void visit(ObjectValue value) {
+        if (pass == Pass.PrintOrder)
+            System.out.println(value.toString());
+        if (pass == Pass.Third)
+            value.setType(new ObjectType());
+    }
+
+    @Override
     public void visit(Assign assign) {
         if (pass == Pass.PrintOrder)
             System.out.println(assign.toString());
 
         if (pass == Pass.Third) {
-            if (assign.getlValue() != null) {
-                assign.getlValue().accept(this);
-            }
-            else {
-                ErrorLogger.log("lvalue cannot be null", assign);
-            }
-
             if (assign.getrValue() != null) {
                 assign.getrValue().accept(this);
             }
             else {
                 ErrorLogger.log("rvalue cannot be null", assign);
+            }
+            if (assign.getlValue() != null) {
+                assign.getlValue().accept(this);
+            }
+            else {
+                ErrorLogger.log("lvalue cannot be null", assign);
             }
             if (!assign.getrValue().getType().subtype(assign.getlValue().getType())) {
                 ErrorLogger.log("unsupported operand type for " + BinaryOperator.assign, assign);

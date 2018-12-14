@@ -28,6 +28,7 @@ public interface Visitor {
     void visit(BooleanValue value);
     void visit(IntValue value);
     void visit(StringValue value);
+    void visit(ObjectValue value);
 
     //Statements
     void visit(Assign assign);

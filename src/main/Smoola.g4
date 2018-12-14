@@ -474,9 +474,23 @@ grammar Smoola;
             $expr = new NewClass(id);
             $expr.setLine($className.getLine());
         }
-        |   'this' { $expr = new This(); }
-        |   'true' { $expr = new BooleanValue(true, new BooleanType()); }
-        |   'false' { $expr = new BooleanValue(false, new BooleanType()); }
+        |
+            name = 'new Object()' {
+            $expr = new ObjectValue(new ObjectType());
+            $expr.setLine($name.getLine());
+        }
+        |   name = 'this' {
+                $expr = new This();
+                $expr.setLine($name.getLine());
+            }
+        |   name = 'true' {
+                $expr = new BooleanValue(true, new BooleanType());
+                $expr.setLine($name.getLine());
+            }
+        |   name = 'false' {
+                $expr = new BooleanValue(false, new BooleanType());
+                $expr.setLine($name.getLine());
+            }
         |	name = ID {
             $expr = new Identifier($name.text);
             $expr.setLine($name.getLine());
@@ -518,6 +532,10 @@ grammar Smoola;
 	        id.setLine($identifier.getLine());
 	        tmp.setName(id);
 	        $synType = tmp;
+        }
+        |
+        'Object' {
+            $synType = new ObjectType();
         }
 	;
 

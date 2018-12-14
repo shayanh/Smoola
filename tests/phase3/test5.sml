@@ -32,7 +32,7 @@ class Test2 extends NotDeclaredClass1 { # error
 class Test3 {
     var i: int;
     var arr: int[];
-    var self: t3;
+    var self: t3;   # error
 
     def method3() : Test1 {
         return new Test3(); # error
@@ -55,7 +55,7 @@ class Test3 {
         a = new Test4();
         this = new Test3();
         this = new Test5();
-        this = new Test4() = new Test5(); # error
+        this = new Test4() = new Test5();
         # this.i = this.arr.length;
         # this.arr = 4; # error
 

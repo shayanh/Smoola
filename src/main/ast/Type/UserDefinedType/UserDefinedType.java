@@ -47,6 +47,6 @@ public class UserDefinedType extends Type {
             }
             c = c.getParentClass();
         }
-        return true;
+        return false;
     }
 }
