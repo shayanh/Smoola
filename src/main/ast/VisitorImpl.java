@@ -373,6 +373,7 @@ public class VisitorImpl implements Visitor {
                 e.printStackTrace();
             }
             instance.setType(item.getType());
+            // TODO if item is null must log an error
         }
     }
 
@@ -409,18 +410,21 @@ public class VisitorImpl implements Visitor {
 
     @Override
     public void visit(BooleanValue value) {
+        // TODO ensure have a BooleanType
         if (pass == Pass.PrintOrder)
             System.out.println(value.toString());
     }
 
     @Override
     public void visit(IntValue value) {
+        // TODO ensure have a IntType
         if (pass == Pass.PrintOrder)
             System.out.println(value.toString());
     }
 
     @Override
     public void visit(StringValue value) {
+        // TODO ensure have a StringType
         if (pass == Pass.PrintOrder)
             System.out.println(value.toString());
     }
@@ -430,6 +434,7 @@ public class VisitorImpl implements Visitor {
         if (pass == Pass.PrintOrder)
             System.out.println(assign.toString());
 
+        // TODO if getlValue or getrValue is null must log an error
         if (assign.getlValue() != null) {
             assign.getlValue().accept(this);
         }
