@@ -105,7 +105,7 @@ public class VisitorImpl implements Visitor {
             while (x != null) {
                 SymbolTable s = classSymbolTable.get(x.getName().getName());
                 for (SymbolTableItem symbolTableItem : s.getItems().values()) {
-                    if (symbolTableItem.getKey().toString().equals("this"))
+                    if (symbolTableItem.getKey().equals("this"))
                         continue;
                     try {
                         SymbolTable.top.put(symbolTableItem);
@@ -492,11 +492,14 @@ public class VisitorImpl implements Visitor {
             System.out.println(assign.toString());
 
         if (pass == Pass.Third) {
+            boolean check = true;
+
             if (assign.getlValue() != null) {
                 assign.getlValue().accept(this);
             }
             else {
                 ErrorLogger.log("lvalue cannot be null", assign);
+                check = false;
             }
 
             if (assign.getrValue() != null) {
@@ -504,8 +507,9 @@ public class VisitorImpl implements Visitor {
             }
             else {
                 ErrorLogger.log("rvalue cannot be null", assign);
+                check = false;
             }
-            if (!assign.getrValue().getType().subtype(assign.getlValue().getType())) {
+            if (check && !assign.getrValue().getType().subtype(assign.getlValue().getType())) {
                 ErrorLogger.log("unsupported operand type for " + BinaryOperator.assign, assign);
             }
         }

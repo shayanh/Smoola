@@ -153,14 +153,14 @@ grammar Smoola;
     ;
 
     statementAssignment returns [Assign assign]:
-        expr = expression ';'
+        expr = expression id = ';'
         {
             if ($expr.assignExpr != null) {
                 $assign = new Assign($expr.assignExpr.getLeft(), $expr.assignExpr.getRight());
-                $assign.setLine($expr.assignExpr.getLine());
             } else {
                 $assign = new Assign(null, null);
             }
+            $assign.setLine($id.getLine());
         }
     ;
 
@@ -474,9 +474,9 @@ grammar Smoola;
             $expr = new NewClass(id);
             $expr.setLine($className.getLine());
         }
-        |   'this' { $expr = new This(); }
-        |   'true' { $expr = new BooleanValue(true, new BooleanType()); }
-        |   'false' { $expr = new BooleanValue(false, new BooleanType()); }
+        |   id = 'this' { $expr = new This(); $expr.setLine($id.getLine()); }
+        |   id = 'true' { $expr = new BooleanValue(true, new BooleanType()); $expr.setLine($id.getLine()); }
+        |   id = 'false' { $expr = new BooleanValue(false, new BooleanType()); $expr.setLine($id.getLine()); }
         |	name = ID {
             $expr = new Identifier($name.text);
             $expr.setLine($name.getLine());
@@ -487,7 +487,7 @@ grammar Smoola;
             $expr = new ArrayCall(id, $index.expr);
             $expr.setLine($name.getLine());
         }
-        |	'(' ex = expression ')' { $expr = $ex.expr; }
+        |	id = '(' ex = expression ')' { $expr = $ex.expr; $expr.setLine($id.getLine()); }
 	;
 
 	type returns [Type synType]:
