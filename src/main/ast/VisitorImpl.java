@@ -355,7 +355,7 @@ public class VisitorImpl implements Visitor {
                 typ.setClassDeclaration(classDecMap.get(newClass.getClassName().getName()));
                 newClass.setType(typ);
             } catch (ItemNotFoundException e) {
-                // TODO print error
+                ٍErrorLogger.log("class " + newClass.getClassName().getName() + " is not declared", newClass);
                 newClass.setType(new NoType());
             }
         }
