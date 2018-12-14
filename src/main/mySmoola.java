@@ -7,8 +7,8 @@ import org.antlr.v4.runtime.*;
 
 public class mySmoola {
     public static void main(String[] args) throws IOException {
-//        CharStream reader = CharStreams.fromFileName("tests/nazi5.sml");
-        CharStream reader = CharStreams.fromFileName(args[0]);
+        CharStream reader = CharStreams.fromFileName("tests/phase3-armit.sml");
+//        CharStream reader = CharStreams.fromFileName(args[0]);
         SmoolaLexer lexer = new SmoolaLexer(reader);   // SmoolaLexer in your project
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         SmoolaParser parser = new SmoolaParser(tokens);   // SmoolaParser in your project
@@ -19,7 +19,6 @@ public class mySmoola {
         v.setPass(Pass.Second);
         prog.accept(v);
         if (!v.hasError()) {
-            //v.setPass(Pass.PrintOrder);
             v.setPass(Pass.Third);
             prog.accept(v);
         }
