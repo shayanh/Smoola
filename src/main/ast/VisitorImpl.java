@@ -491,18 +491,23 @@ public class VisitorImpl implements Visitor {
         if (pass == Pass.PrintOrder)
             System.out.println(assign.toString());
 
-        if (assign.getlValue() != null) {
-            assign.getlValue().accept(this);
-        }
-        else {
-            ErrorLogger.log("lvalue cannot be null", assign);
-        }
+        if (pass == Pass.Third) {
+            if (assign.getlValue() != null) {
+                assign.getlValue().accept(this);
+            }
+            else {
+                ErrorLogger.log("lvalue cannot be null", assign);
+            }
 
-        if (assign.getrValue() != null) {
-            assign.getrValue().accept(this);
-        }
-        else {
-            ErrorLogger.log("rvalue cannot be null", assign);
+            if (assign.getrValue() != null) {
+                assign.getrValue().accept(this);
+            }
+            else {
+                ErrorLogger.log("rvalue cannot be null", assign);
+            }
+            if (!assign.getrValue().getType().subtype(assign.getlValue().getType())) {
+                ErrorLogger.log("unsupported operand type for " + BinaryOperator.assign, assign);
+            }
         }
     }
 

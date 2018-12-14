@@ -157,7 +157,7 @@ grammar Smoola;
         {
             if ($expr.assignExpr != null) {
                 $assign = new Assign($expr.assignExpr.getLeft(), $expr.assignExpr.getRight());
-                $assign.setLine($expr.assignExpr.getLeft().getLine());
+                $assign.setLine($expr.assignExpr.getLine());
             } else {
                 $assign = new Assign(null, null);
             }

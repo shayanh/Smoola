@@ -11,7 +11,7 @@ class Test1 {
         var a: Test1;
 
     def method1() : NotDeclaredClass0 { # error
-        var a: int;
+        var b: int;
         this = 5; # error
 
         return 0; # error
