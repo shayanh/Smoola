@@ -12,6 +12,6 @@ public class BooleanType extends Type {
 
     @Override
     public boolean subtype(Type t) {
-        return t instanceof ObjectType;
+        return (t instanceof ObjectType) || (t instanceof BooleanType);
     }
 }
