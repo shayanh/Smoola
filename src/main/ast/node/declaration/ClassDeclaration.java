@@ -1,5 +1,7 @@
 package ast.node.declaration;
 
+import ast.Type.NoType;
+import ast.Type.Type;
 import ast.Visitor;
 import ast.node.expression.Identifier;
 
@@ -69,4 +71,33 @@ public class ClassDeclaration extends Declaration{
     public void setParentClass(ClassDeclaration parentClass) {
         this.parentClass = parentClass;
     }
+
+    public boolean containsMethod(Identifier methodName) {
+        for (MethodDeclaration method : methodDeclarations) {
+            if (method.getName().getName().equals(methodName.getName())) {
+                return true;
+            }
+        }
+
+        if (parentClass != null)
+            return parentClass.containsMethod(methodName);
+
+        return false;
+    }
+
+    public Type getMethodType(Identifier methodName) {
+        for (MethodDeclaration method : methodDeclarations) {
+            if (method.getName().getName().equals(methodName.getName())) {
+                return method.getReturnType();
+            }
+        }
+
+        if (parentClass != null)
+            return parentClass.getMethodType(methodName);
+
+        return new NoType();
+    }
+
+
+
 }

@@ -18,8 +18,6 @@ import ast.node.expression.Value.StringValue;
 import ast.node.statement.*;
 import symbolTable.*;
 
-//import javax.jws.soap.SOAPBinding;
-import javax.jws.soap.SOAPBinding;
 import java.util.HashMap;
 
 public class VisitorImpl implements Visitor {
@@ -73,7 +71,7 @@ public class VisitorImpl implements Visitor {
             try {
                 SymbolTable.top.put(symbolTableClassItem);
             } catch (ItemAlreadyExistsException e) {
-                ErrorLogger.log("Redefinition of class "+classDeclaration.getName().getName(), classDeclaration);
+                ErrorLogger.log("Redefinition of class "+ classDeclaration.getName().getName(), classDeclaration);
                 hasError = true;
                 classDeclaration.setName(new Identifier("Temporary_" + classDeclaration.getName().getName() + "_1"));
             }
@@ -81,6 +79,18 @@ public class VisitorImpl implements Visitor {
         }
 
         SymbolTable symbolTable = new SymbolTable(SymbolTable.top);
+
+        UserDefinedType typ = new UserDefinedType();
+        typ.setName(classDeclaration.getName());
+        typ.setClassDeclaration(classDeclaration);
+        SymbolTableVariableItem symbolTableVariableItem = new SymbolTableVariableItem("this", typ);
+        try {
+            symbolTable.put(symbolTableVariableItem);
+        }
+        catch (ItemAlreadyExistsException e) {
+            System.out.println("Can't put this");
+        }
+
         SymbolTable.push(symbolTable);
 
         if ((pass == Pass.Second || pass == Pass.Third) && classDeclaration.hasParent()) {
@@ -234,15 +244,40 @@ public class VisitorImpl implements Visitor {
 
             if (op == BinaryOperator.and || op == BinaryOperator.or) {
                 if (!binaryExpression.getLeft().getType().subtype(new BooleanType())) {
-                    ErrorLogger.log("unsupported operand type for " +op.name(), binaryExpression.getLeft());
+                    ErrorLogger.log("unsupported operand type for " + op.name(), binaryExpression.getLeft());
                     binaryExpression.setType(new NoType());
                 }
                 else if (!binaryExpression.getRight().getType().subtype(new BooleanType())) {
-                    ErrorLogger.log("unsupported operand type for " +op.name(), binaryExpression.getRight());
+                    ErrorLogger.log("unsupported operand type for " + op.name(), binaryExpression.getRight());
                     binaryExpression.setType(new NoType());
                 }
                 else {
                     binaryExpression.setType(new BooleanType());
+                }
+            }
+
+            if (op == BinaryOperator.eq || op == BinaryOperator.neq) {
+                Type right = binaryExpression.getRight().getType();
+                Type left = binaryExpression.getLeft().getType();
+                if (!(left.subtype(new IntType()) && right.subtype(new IntType())) &&
+                        !(left.subtype(new StringType()) && right.subtype(new StringType())) &&
+                        !(left.subtype(new ArrayType()) && right.subtype(new ArrayType())) &&
+                        !(left.subtype(right) && right.subtype(left))) {
+                    ErrorLogger.log("unsupported operand type for " + op.name(), binaryExpression);
+                    binaryExpression.setType(new NoType());
+                }
+                else {
+                    binaryExpression.setType(new BooleanType());
+                }
+            }
+
+            if (op == BinaryOperator.assign) {
+                if (!binaryExpression.getRight().getType().subtype(binaryExpression.getLeft().getType())) {
+                    ErrorLogger.log("unsupported operand type for " + op.name(), binaryExpression);
+                    binaryExpression.setType(new NoType());
+                }
+                else {
+                    binaryExpression.setType(binaryExpression.getLeft().getType());
                 }
             }
         }
@@ -275,13 +310,24 @@ public class VisitorImpl implements Visitor {
         if (pass == Pass.PrintOrder)
             System.out.println(methodCall.toString());
         methodCall.getInstance().accept(this);
-        methodCall.getMethodName().accept(this);
+
+        if (pass != Pass.Third)
+            methodCall.getMethodName().accept(this);
+
+        if (pass == Pass.Third) {
+                String instanceType = methodCall.getInstance().getType().toString();
+                ClassDeclaration classDec = classDecMap.get(instanceType);
+                if (!classDec.containsMethod(methodCall.getMethodName())) {
+                    ErrorLogger.log("there is no method named " + methodCall.getMethodName().getName() +
+                            " in class " + instanceType, methodCall);
+                }
+                methodCall.setType(classDec.getMethodType(methodCall.getMethodName()));
+        }
+
         for (Expression arg : methodCall.getArgs()) {
             arg.accept(this);
         }
 
-        if (pass == Pass.Third) {
-        }
     }
 
     @Override
@@ -319,6 +365,15 @@ public class VisitorImpl implements Visitor {
     public void visit(This instance) {
         if (pass == Pass.PrintOrder)
             System.out.println(instance.toString());
+        if (pass == Pass.Third) {
+            SymbolTableVariableItem item = null;
+            try {
+                item = (SymbolTableVariableItem) SymbolTable.top.get("this");
+            } catch (ItemNotFoundException e) {
+                e.printStackTrace();
+            }
+            instance.setType(item.getType());
+        }
     }
 
     @Override
