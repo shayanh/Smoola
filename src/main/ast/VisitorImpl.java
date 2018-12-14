@@ -2,7 +2,9 @@ package ast;
 
 import ast.Type.ArrayType.ArrayType;
 import ast.Type.NoType;
+import ast.Type.PrimitiveType.BooleanType;
 import ast.Type.PrimitiveType.IntType;
+import ast.Type.PrimitiveType.StringType;
 import ast.Type.Type;
 import ast.Type.UserDefinedType.UserDefinedType;
 import ast.node.Program;
@@ -16,7 +18,7 @@ import ast.node.expression.Value.StringValue;
 import ast.node.statement.*;
 import symbolTable.*;
 
-import javax.jws.soap.SOAPBinding;
+//import javax.jws.soap.SOAPBinding;
 import java.util.HashMap;
 
 public class VisitorImpl implements Visitor {
@@ -218,7 +220,29 @@ public class VisitorImpl implements Visitor {
                     op == BinaryOperator.sub || op == BinaryOperator.gt || op == BinaryOperator.lt) {
                 if (!binaryExpression.getLeft().getType().subtype(new IntType())
                         || !binaryExpression.getRight().getType().subtype(new IntType())) {
-                    ErrorLogger.log("");
+                    ErrorLogger.log("unsupported operand type for " + op.name(), binaryExpression);
+                    binaryExpression.setType(new NoType());
+                }
+                else if (!binaryExpression.getRight().getType().subtype(new IntType())) {
+                    ErrorLogger.log("unsupported operand type for " +op.name(), binaryExpression);
+                    binaryExpression.setType(new NoType());
+                }
+                else {
+                    binaryExpression.setType(new IntType());
+                }
+            }
+
+            if (op == BinaryOperator.and || op == BinaryOperator.or) {
+                if (!binaryExpression.getLeft().getType().subtype(new BooleanType())) {
+                    ErrorLogger.log("unsupported operand type for " +op.name(), binaryExpression);
+                    binaryExpression.setType(new NoType());
+                }
+                else if(!binaryExpression.getRight().getType().subtype(new BooleanType())) {
+                    ErrorLogger.log("unsupported operand type for " +op.name(), binaryExpression);
+                    binaryExpression.setType(new NoType());
+                }
+                else {
+                    binaryExpression.setType(new BooleanType());
                 }
             }
         }
@@ -228,7 +252,19 @@ public class VisitorImpl implements Visitor {
     public void visit(Identifier identifier) {
         if (pass == Pass.PrintOrder)
             System.out.println(identifier.toString());
-    }
+
+        if (pass == Pass.Third) {
+            try {
+                //System.out.println(SymbolTable.top.getItems().keySet().toString());
+                SymbolTableVariableItem item = (SymbolTableVariableItem) SymbolTable.top.get(identifier.getName());
+                identifier.setType(item.getType());
+            }
+            catch (ItemNotFoundException e) {
+                ErrorLogger.log("variable " + identifier.getName() + " is not declared", identifier);
+                identifier.setType(new NoType());
+            }
+        }
+     }
 
     @Override
     public void visit(Length length) {
@@ -245,6 +281,9 @@ public class VisitorImpl implements Visitor {
         methodCall.getMethodName().accept(this);
         for (Expression arg : methodCall.getArgs()) {
             arg.accept(this);
+        }
+
+        if (pass == Pass.Third) {
         }
     }
 
@@ -281,6 +320,30 @@ public class VisitorImpl implements Visitor {
         if (pass == Pass.PrintOrder)
             System.out.println(unaryExpression.toString());
         unaryExpression.getValue().accept(this);
+
+        if (pass == Pass.Third) {
+            if (unaryExpression.getUnaryOperator() == UnaryOperator.minus) {
+                if (!unaryExpression.getValue().getType().subtype(new IntType())) {
+                    ErrorLogger.log("unsupported operand type for " + unaryExpression.getUnaryOperator().name(),
+                            unaryExpression);
+                    unaryExpression.setType(new NoType());
+                }
+                else {
+                    unaryExpression.setType(new IntType());
+                }
+            }
+
+            if (unaryExpression.getUnaryOperator() == UnaryOperator.not) {
+                if (!unaryExpression.getValue().getType().subtype(new BooleanType())) {
+                    ErrorLogger.log("unsupported operand type for " + unaryExpression.getUnaryOperator().name(),
+                            unaryExpression);
+                    unaryExpression.setType(new NoType());
+                }
+                else {
+                    unaryExpression.setType(new BooleanType());
+                }
+            }
+        }
     }
 
     @Override
@@ -332,6 +395,12 @@ public class VisitorImpl implements Visitor {
         if (conditional.getAlternativeBody() != null) {
             conditional.getAlternativeBody().accept(this);
         }
+
+        if (pass == Pass.Third) {
+            if (!conditional.getExpression().getType().subtype(new BooleanType())) {
+                ErrorLogger.log("condition type must be boolean", conditional);
+            }
+        }
     }
 
     @Override
@@ -345,6 +414,12 @@ public class VisitorImpl implements Visitor {
             System.out.println(loop.toString());
         loop.getCondition().accept(this);
         loop.getBody().accept(this);
+
+        if (pass == Pass.Third) {
+            if (!loop.getCondition().getType().subtype(new BooleanType())) {
+                ErrorLogger.log("condition type must be boolean", loop);
+            }
+        }
     }
 
     @Override
@@ -352,5 +427,13 @@ public class VisitorImpl implements Visitor {
         if (pass == Pass.PrintOrder)
             System.out.println(write.toString());
         write.getArg().accept(this);
+
+        if (pass == Pass.Third) {
+            Type argType = write.getArg().getType();
+            if (!argType.subtype(new IntType()) && !argType.subtype(new StringType()) && !argType.subtype(new ArrayType())) {
+                ErrorLogger.log("unsupported type for writeln", write);
+                write.getArg().setType(new NoType());
+            }
+        }
     }
 }

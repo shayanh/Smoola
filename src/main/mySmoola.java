@@ -19,7 +19,8 @@ public class mySmoola {
         v.setPass(Pass.Second);
         prog.accept(v);
         if (!v.hasError()) {
-            v.setPass(Pass.PrintOrder);
+            //v.setPass(Pass.PrintOrder);
+            v.setPass(Pass.Third);
             prog.accept(v);
         }
     }
