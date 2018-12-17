@@ -96,6 +96,17 @@ public class ClassDeclaration extends Declaration{
         return new NoType();
     }
 
+    public MethodDeclaration getMethodDeclaration(Identifier methodName) {
+        for (MethodDeclaration method : methodDeclarations) {
+            if (method.getName().getName().equals(methodName.getName())) {
+                return method;
+            }
+        }
 
+        if (parentClass != null)
+            return parentClass.getMethodDeclaration(methodName);
+
+        return null;
+    }
 
 }

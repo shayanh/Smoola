@@ -102,12 +102,12 @@ public class VisitorImpl implements Visitor {
 
         if ((pass == Pass.Second || pass == Pass.Third) && classDeclaration.hasParent()) {
             String parName = classDeclaration.getParentName().getName();
+            ClassDeclaration x = classDecMap.get(parName);
+            classDeclaration.setParentClass(x);
             if (hasLoop(parName, classDeclaration.getName().getName())) {
                 ErrorLogger.log("dependencies cannot have a loop", classDeclaration);
                 System.exit(0);
             }
-            ClassDeclaration x = classDecMap.get(parName);
-            classDeclaration.setParentClass(x);
             while (x != null) {
                 SymbolTable s = classSymbolTable.get(x.getName().getName());
                 for (SymbolTableItem symbolTableItem : s.getItems().values()) {
@@ -375,20 +375,46 @@ public class VisitorImpl implements Visitor {
     public void visit(MethodCall methodCall) {
         methodCall.getInstance().accept(this);
 
-        if (pass == Pass.Third) {
-            String instanceType = methodCall.getInstance().getType().toString();
-            ClassDeclaration classDec = classDecMap.get(instanceType);
-            if (classDec == null || !classDec.containsMethod(methodCall.getMethodName())) {
-                methodCall.setType(new NoType());
-                ErrorLogger.log("there is no method named " + methodCall.getMethodName().getName() +
-                        " in class " + instanceType, methodCall);
-            } else {
-                methodCall.setType(classDec.getMethodType(methodCall.getMethodName()));
-            }
-        }
-
         for (Expression arg : methodCall.getArgs()) {
             arg.accept(this);
+        }
+
+        if (pass == Pass.Third) {
+            if (methodCall.getInstance().getType().subtype(new NoType())) {
+                methodCall.setType(new NoType());
+            }
+            else if (!(methodCall.getInstance().getType() instanceof  UserDefinedType)) {
+                ErrorLogger.log("method called on invalid instance", methodCall);
+                methodCall.setType(new NoType());
+            }
+            else {
+                String instanceType = methodCall.getInstance().getType().toString();
+                ClassDeclaration classDec = classDecMap.get(instanceType);
+                if (classDec == null || !classDec.containsMethod(methodCall.getMethodName())) {
+                    ErrorLogger.log("there is no method named " + methodCall.getMethodName().getName() +
+                            " in class " + instanceType, methodCall);
+                    methodCall.setType(new NoType());
+                }
+                else {
+                    MethodDeclaration methodDec = classDec.getMethodDeclaration(methodCall.getMethodName());
+                    List<Expression> currArgs = methodCall.getArgs();
+                    List<VarDeclaration> decArgs = methodDec.getArgs();
+                    if (currArgs.size() != decArgs.size()) {
+                        ErrorLogger.log("method arguments don't match definition", methodCall);
+                        methodCall.setType(new NoType());
+                    }
+                    else {
+                        for (int i = 0; i < currArgs.size(); i++) {
+                            if (!currArgs.get(i).getType().subtype(decArgs.get(i).getType())) {
+                                ErrorLogger.log("invalid arguments for method call", methodCall);
+                                methodCall.setType(new NoType());
+                                return;
+                            }
+                        }
+                    }
+                    methodCall.setType(classDec.getMethodType(methodCall.getMethodName()));
+                }
+            }
         }
 
     }
@@ -520,6 +546,7 @@ public class VisitorImpl implements Visitor {
                 ErrorLogger.log("lvalue cannot be null", assign);
                 check = false;
             }
+
             if (assign.getrValue() != null) {
                 assign.getrValue().accept(this);
             }
@@ -570,16 +597,33 @@ public class VisitorImpl implements Visitor {
         methodCallInMain.getInstance().accept(this);
 
         if (pass == Pass.Third) {
-            String instanceType = methodCallInMain.getInstance().getType().toString();
-            ClassDeclaration classDec = classDecMap.get(instanceType);
-            if (classDec == null || !classDec.containsMethod(methodCallInMain.getMethodName())) {
-                ErrorLogger.log("there is no method named " + methodCallInMain.getMethodName().getName() +
-                        " in class " + instanceType, methodCallInMain);
+            if (!(methodCallInMain.getInstance().getType() instanceof  UserDefinedType)) {
+                ErrorLogger.log("method called on invalid instance", methodCallInMain);
             }
-        }
-
-        for (Expression arg : methodCallInMain.getArgs()) {
-            arg.accept(this);
+            else {
+                String instanceType = methodCallInMain.getInstance().getType().toString();
+                ClassDeclaration classDec = classDecMap.get(instanceType);
+                if (classDec == null || !classDec.containsMethod(methodCallInMain.getMethodName())) {
+                    ErrorLogger.log("there is no method named " + methodCallInMain.getMethodName().getName() +
+                            " in class " + instanceType, methodCallInMain);
+                }
+                else {
+                    MethodDeclaration methodDec = classDec.getMethodDeclaration(methodCallInMain.getMethodName());
+                    List<Expression> currArgs = methodCallInMain.getArgs();
+                    List<VarDeclaration> decArgs = methodDec.getArgs();
+                    if (currArgs.size() != decArgs.size()) {
+                        ErrorLogger.log("method arguments don't match definition", methodCallInMain);
+                    }
+                    else {
+                        for (int i = 0; i < currArgs.size(); i++) {
+                            if (!currArgs.get(i).getType().subtype(decArgs.get(i).getType())) {
+                                ErrorLogger.log("invalid arguments for method call", methodCallInMain);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -620,10 +664,13 @@ public class VisitorImpl implements Visitor {
 
     private boolean hasLoop(String parName, String className) {
         ClassDeclaration par = classDecMap.get(parName);
-        while (par != null) {
-            if (par.getParentName().getName().equals(className))
+        while(par != null) {
+            if (par.getName().getName().equals(className))
                 return true;
-            par = classDecMap.get(par.getParentName().getName());
+            if (par.hasParent())
+                par = classDecMap.get(par.getParentName().getName());
+            else
+                par = null;
         }
         return false;
     }
