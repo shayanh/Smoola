@@ -1,14 +1,14 @@
 class MainClass {
     def main() : int {
         writeln(new Test8().toString());
-        #writeln(new NotDeclaredClass3().toString()); # error
+        writeln(new NotDeclaredClass3().toString()); # error
         writeln(new NotDeclaredClass3()); # error
         return 0;
     }
 }
 
 class Test1 {
-        var a: Test1;
+    var a: Test1;
 
     def method1() : NotDeclaredClass0 { # error
         var b: int;
@@ -128,7 +128,9 @@ class Test6 {
         s = arr[3]; # error
 
         b = s == "shayan";
-        b = (false == false); # error
+        b = (false == false);
+        b = arr == arr;
+        b = obj == obj;
         i = arr <> arr; # error
 
         b = true && b || false;
@@ -141,8 +143,8 @@ class Test6 {
         t1 = new Test3();
         t2 = t1; # error
         b = t1 <> new Test3();
-        b = t1 == t2; # error
-        b = obj == obj; # error
+        b = t1 == t2;
+        b = obj == obj;
 
         i = j = i = j;
         j = i = 4 / 5 * 10 + i;
@@ -177,6 +179,8 @@ class Test6 {
         }
         if (i || i < 10 || s) then # error
             i = 10;
+        if (i) then # error
+            i = 5;
 
         return 3;
     }
