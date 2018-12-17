@@ -14,10 +14,15 @@ class Test1 {
         }
         return res;
     }
+
+    def test2() : Test2 {
+        return new Test2();
+    }
 }
 
 class Test2 {
     def check() : boolean {
+        new Test1().testMethod();
         return false;
     }
 }

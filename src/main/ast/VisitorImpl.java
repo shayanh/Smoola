@@ -179,19 +179,21 @@ public class VisitorImpl implements Visitor {
         }
         methodDeclaration.getReturnValue().accept(this);
 
-        if (pass == Pass.Third) {
-            if (methodDeclaration.getReturnType() instanceof UserDefinedType) {
-                UserDefinedType typ = new UserDefinedType();
-                Identifier className = ((UserDefinedType) methodDeclaration.getReturnType()).getName();
-                ClassDeclaration classDec = classDecMap.get(className.getName());
-                if (classDec == null) {
+        if (methodDeclaration.getReturnType() instanceof UserDefinedType) {
+            UserDefinedType typ = new UserDefinedType();
+            Identifier className = ((UserDefinedType) methodDeclaration.getReturnType()).getName();
+            ClassDeclaration classDec = classDecMap.get(className.getName());
+            if (classDec == null) {
+                if (pass == Pass.Third) {
                     ErrorLogger.log("method return type " + className.getName() + " is not valid", methodDeclaration);
                     classDec = new ClassDeclaration(className, null);
                 }
-                typ.setName(className);
-                typ.setClassDeclaration(classDec);
-                methodDeclaration.setReturnType(typ);
             }
+            typ.setName(className);
+            typ.setClassDeclaration(classDec);
+            methodDeclaration.setReturnType(typ);
+        }
+        if (pass == Pass.Third) {
             if (!methodDeclaration.getReturnValue().getType().subtype(methodDeclaration.getReturnType())) {
                 String msg = methodName + " return type must be " + methodDeclaration.getReturnType().toString();
                 ErrorLogger.log(msg, methodDeclaration.getReturnValue());
@@ -371,22 +373,18 @@ public class VisitorImpl implements Visitor {
 
     @Override
     public void visit(MethodCall methodCall) {
-        if (pass == Pass.PrintOrder)
-            System.out.println(methodCall.toString());
         methodCall.getInstance().accept(this);
 
-        if (pass != Pass.Third)
-            methodCall.getMethodName().accept(this);
-
         if (pass == Pass.Third) {
-                String instanceType = methodCall.getInstance().getType().toString();
-                ClassDeclaration classDec = classDecMap.get(instanceType);
-                // TODO: What if instance is noType?
-                if (!classDec.containsMethod(methodCall.getMethodName())) {
-                    ErrorLogger.log("there is no method named " + methodCall.getMethodName().getName() +
-                            " in class " + instanceType, methodCall);
-                }
+            String instanceType = methodCall.getInstance().getType().toString();
+            ClassDeclaration classDec = classDecMap.get(instanceType);
+            if (classDec == null || !classDec.containsMethod(methodCall.getMethodName())) {
+                methodCall.setType(new NoType());
+                ErrorLogger.log("there is no method named " + methodCall.getMethodName().getName() +
+                        " in class " + instanceType, methodCall);
+            } else {
                 methodCall.setType(classDec.getMethodType(methodCall.getMethodName()));
+            }
         }
 
         for (Expression arg : methodCall.getArgs()) {
@@ -516,9 +514,6 @@ public class VisitorImpl implements Visitor {
             boolean check = true;
 
             if (assign.getlValue() != null) {
-                if (!isLvalue(assign.getlValue())) {
-                    ErrorLogger.log("left side of assignment must be a valid lvalue", assign);
-                }
                 assign.getlValue().accept(this);
             }
             else {
@@ -532,8 +527,14 @@ public class VisitorImpl implements Visitor {
                 ErrorLogger.log("rvalue cannot be null", assign);
                 check = false;
             }
-            if (check && !assign.getrValue().getType().subtype(assign.getlValue().getType())) {
-                ErrorLogger.log("unsupported operand type for " + BinaryOperator.assign, assign);
+            if (check) {
+                if (isLvalue(assign.getlValue())) {
+                    if (!assign.getrValue().getType().subtype(assign.getlValue().getType())) {
+                        ErrorLogger.log("unsupported operand type for " + BinaryOperator.assign, assign);
+                    }
+                } else {
+                    ErrorLogger.log("left side of assignment must be a valid lvalue", assign);
+                }
             }
         }
     }
@@ -566,7 +567,20 @@ public class VisitorImpl implements Visitor {
 
     @Override
     public void visit(MethodCallInMain methodCallInMain) {
-        //TODO: implement appropriate visit functionality
+        methodCallInMain.getInstance().accept(this);
+
+        if (pass == Pass.Third) {
+            String instanceType = methodCallInMain.getInstance().getType().toString();
+            ClassDeclaration classDec = classDecMap.get(instanceType);
+            if (classDec == null || !classDec.containsMethod(methodCallInMain.getMethodName())) {
+                ErrorLogger.log("there is no method named " + methodCallInMain.getMethodName().getName() +
+                        " in class " + instanceType, methodCallInMain);
+            }
+        }
+
+        for (Expression arg : methodCallInMain.getArgs()) {
+            arg.accept(this);
+        }
     }
 
     @Override
@@ -598,16 +612,13 @@ public class VisitorImpl implements Visitor {
         }
     }
 
-    public boolean isLvalue(Expression expression) {
+    private boolean isLvalue(Expression expression) {
         if (expression instanceof ArrayCall || expression instanceof Identifier)
             return true;
-        else if (expression.getType() != null && expression.getType().subtype(new NoType()))
-            return true;
-        else
-            return false;
+        else return expression.getType() != null && expression.getType().subtype(new NoType());
     }
 
-    public boolean hasLoop(String parName, String className) {
+    private boolean hasLoop(String parName, String className) {
         ClassDeclaration par = classDecMap.get(parName);
         while (par != null) {
             if (par.getParentName().getName().equals(className))

@@ -29,7 +29,7 @@ grammar Smoola;
             $mainClassDec = new ClassDeclaration(identifier1, null);
             $mainClassDec.setLine($className.getLine());
         }
-        '{' 'def' methodName = ID '(' ')' ':' 'int' '{'  stmnts = statements 'return' returnExpr = expression ';' '}' '}'
+        '{' 'def' methodName = ID '(' ')' ':' 'int' '{'  stmnts = statementsInMain 'return' returnExpr = expression ';' '}' '}'
         {
             Identifier identifier2 = new Identifier($methodName.text);
             identifier2.setLine($methodName.getLine());
@@ -107,6 +107,13 @@ grammar Smoola;
         (stmnt = statement { $stmnts.add($stmnt.stmnt); } )*
     ;
 
+    statementsInMain returns [ArrayList<Statement> stmnts]:
+    {
+        $stmnts = new ArrayList<>();
+    }
+    (stmnt = statementInMain { $stmnts.add($stmnt.stmnt); } )*
+    ;
+
     statement returns [Statement stmnt]:
         {
             $stmnt = new Statement();
@@ -118,8 +125,28 @@ grammar Smoola;
         assign = statementAssignment { $stmnt = $assign.assign; }
     ;
 
+    statementInMain returns [Statement stmnt]:
+    {
+        $stmnt = new Statement();
+    }
+    block = statementBlockInMain { $stmnt = $block.block; } |
+    cond = statementCondition { $stmnt = $cond.cond; } |
+    loop = statementLoop { $stmnt = $loop.loop; } |
+    write = statementWrite { $stmnt = $write.write; } |
+    methodCallInMain = statementMethodCallInMain { $stmnt = $methodCallInMain.methodCallInMain; }
+    ;
+
     statementBlock returns [Block block]:
         '{' stmnts = statements '}'
+        {
+            $block = new Block();
+            for (Statement stmnt : $stmnts.stmnts)
+                $block.addStatement(stmnt);
+        }
+    ;
+
+    statementBlockInMain returns [Block block]:
+        '{' stmnts = statementsInMain '}'
         {
             $block = new Block();
             for (Statement stmnt : $stmnts.stmnts)
@@ -158,11 +185,32 @@ grammar Smoola;
             if ($expr.assignExpr != null) {
                 $assign = new Assign($expr.assignExpr.getLeft(), $expr.assignExpr.getRight());
             } else {
-                $assign = new Assign(null, null);
+                $assign = new Assign($expr.expr, null);
             }
             $assign.setLine($id.getLine());
         }
     ;
+
+    statementMethodCallInMain returns [MethodCallInMain methodCallInMain]:
+        'new ' className = ID { NewClass newClass = new NewClass(new Identifier($className.text)); }
+        '(' ')' methodsTempExpr = expressionMethodsTemp [newClass] '.' (
+            methodName = ID '(' ')' {
+                Identifier methodId = new Identifier($methodName.text);
+                methodId.setLine($methodName.getLine());
+                $methodCallInMain = new MethodCallInMain($methodsTempExpr.expr, methodId);
+                $methodCallInMain.setLine($methodName.getLine());
+            }
+            | methodName = ID {
+                Identifier methodTmpId = new Identifier($methodName.text);
+                methodTmpId.setLine($methodName.getLine());
+                MethodCallInMain tmp = new MethodCallInMain($methodsTempExpr.expr, methodTmpId);
+                tmp.setLine($methodName.getLine());
+            }
+            '(' (arg1 = expression { tmp.addArg($arg1.expr); } (',' arg2 = expression { tmp.addArg($arg2.expr); } )*) ')'
+            { $methodCallInMain = tmp; }
+        ) ';'
+    ;
+
 
     expression returns [Expression expr, BinaryExpression assignExpr]:
 		expr1 = expressionAssignment
