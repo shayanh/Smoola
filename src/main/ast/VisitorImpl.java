@@ -102,6 +102,10 @@ public class VisitorImpl implements Visitor {
 
         if ((pass == Pass.Second || pass == Pass.Third) && classDeclaration.hasParent()) {
             String parName = classDeclaration.getParentName().getName();
+            if (hasLoop(parName, classDeclaration.getName().getName())) {
+                ErrorLogger.log("dependencies cannot have a loop", classDeclaration);
+                System.exit(0);
+            }
             ClassDeclaration x = classDecMap.get(parName);
             classDeclaration.setParentClass(x);
             while (x != null) {
@@ -601,5 +605,15 @@ public class VisitorImpl implements Visitor {
             return true;
         else
             return false;
+    }
+
+    public boolean hasLoop(String parName, String className) {
+        ClassDeclaration par = classDecMap.get(parName);
+        while (par != null) {
+            if (par.getParentName().getName().equals(className))
+                return true;
+            par = classDecMap.get(par.getParentName().getName());
+        }
+        return false;
     }
 }
