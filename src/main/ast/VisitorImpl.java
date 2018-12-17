@@ -321,6 +321,9 @@ public class VisitorImpl implements Visitor {
             }
 
             if (op == BinaryOperator.assign) {
+                if (!isLvalue(binaryExpression.getLeft())) {
+                    ErrorLogger.log("left side of assignment must be a valid lvalue", binaryExpression);
+                }
                 if (!binaryExpression.getRight().getType().subtype(binaryExpression.getLeft().getType())) {
                     ErrorLogger.log("unsupported operand type for " + op.name(), binaryExpression);
                     binaryExpression.setType(new NoType());
@@ -509,6 +512,9 @@ public class VisitorImpl implements Visitor {
             boolean check = true;
 
             if (assign.getlValue() != null) {
+                if (!isLvalue(assign.getlValue())) {
+                    ErrorLogger.log("left side of assignment must be a valid lvalue", assign);
+                }
                 assign.getlValue().accept(this);
             }
             else {
@@ -586,5 +592,14 @@ public class VisitorImpl implements Visitor {
                 write.getArg().setType(new NoType());
             }
         }
+    }
+
+    public boolean isLvalue(Expression expression) {
+        if (expression instanceof ArrayCall || expression instanceof Identifier)
+            return true;
+        else if (expression.getType() != null && expression.getType().subtype(new NoType()))
+            return true;
+        else
+            return false;
     }
 }
