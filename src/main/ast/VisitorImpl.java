@@ -110,6 +110,7 @@ public class VisitorImpl implements Visitor {
                 if (mark.get(x.getName().getName()) != null) {
                     if (pass == Pass.Third) {
                         ErrorLogger.log("class "+classDeclaration.getName().getName()+" has circular dependencies", classDeclaration);
+                        hasError = true;
                     }
                     break;
                 }
@@ -137,6 +138,7 @@ public class VisitorImpl implements Visitor {
             if (classDecMap.get(classDeclaration.getParentName().getName()) == null) {
                 ErrorLogger.log("parent class " + classDeclaration.getParentName().getName() +
                         " is not defined", classDeclaration);
+                hasError = true;
             }
         }
 
@@ -191,6 +193,7 @@ public class VisitorImpl implements Visitor {
             if (classDec == null) {
                 if (pass == Pass.Third) {
                     ErrorLogger.log("method return type " + className.getName() + " is not valid", methodDeclaration);
+                    hasError = true;
                     classDec = new ClassDeclaration(className, null);
                 }
             }
@@ -223,6 +226,7 @@ public class VisitorImpl implements Visitor {
                 } else {
                     if (pass == Pass.Third) {
                         ErrorLogger.log("variable type " + className.getName() + " is not valid", varDeclaration);
+                        hasError = true;
                         varDeclaration.setType(new NoType());
                     }
                 }
@@ -234,6 +238,7 @@ public class VisitorImpl implements Visitor {
         if (pass == Pass.Third) {
             if (keywords.contains(varName)) {
                 ErrorLogger.log("variable name cannot be a keyword", varDeclaration);
+                hasError = true;
                 varDeclaration.setType(new NoType());
                 return;
             }
@@ -258,11 +263,13 @@ public class VisitorImpl implements Visitor {
         if (pass == Pass.Third) {
             if (!arrayCall.getInstance().getType().subtype(new ArrayType())) {
                 ErrorLogger.log("instance must be an array", arrayCall);
+                hasError = true;
                 arrayCall.setType(new NoType());
             }
             else {
                 if (!arrayCall.getIndex().getType().subtype(new IntType())) {
                     ErrorLogger.log("index must be an int", arrayCall);
+                    hasError = true;
                     arrayCall.setType(new NoType());
                 }
                 else {
@@ -283,10 +290,12 @@ public class VisitorImpl implements Visitor {
                     op == BinaryOperator.sub || op == BinaryOperator.gt || op == BinaryOperator.lt) {
                 if (!binaryExpression.getLeft().getType().subtype(new IntType())) {
                     ErrorLogger.log("unsupported operand type for " + op.name(), binaryExpression.getLeft());
+                    hasError = true;
                     binaryExpression.setType(new NoType());
                 }
                 else if (!binaryExpression.getRight().getType().subtype(new IntType())) {
                     ErrorLogger.log("unsupported operand type for " +op.name(), binaryExpression.getRight());
+                    hasError = true;
                     binaryExpression.setType(new NoType());
                 }
                 else {
@@ -301,10 +310,12 @@ public class VisitorImpl implements Visitor {
             if (op == BinaryOperator.and || op == BinaryOperator.or) {
                 if (!binaryExpression.getLeft().getType().subtype(new BooleanType())) {
                     ErrorLogger.log("unsupported operand type for " + op.name(), binaryExpression.getLeft());
+                    hasError = true;
                     binaryExpression.setType(new NoType());
                 }
                 else if (!binaryExpression.getRight().getType().subtype(new BooleanType())) {
                     ErrorLogger.log("unsupported operand type for " + op.name(), binaryExpression.getRight());
+                    hasError = true;
                     binaryExpression.setType(new NoType());
                 }
                 else {
@@ -322,6 +333,7 @@ public class VisitorImpl implements Visitor {
                         !(left.subtype(new ArrayType()) && right.subtype(new ArrayType())) &&
                         !(left.subtype(right) && right.subtype(left))) {
                     ErrorLogger.log("unsupported operand type for " + op.name(), binaryExpression);
+                    hasError = true;
                     binaryExpression.setType(new NoType());
                 }
                 else {
@@ -332,9 +344,11 @@ public class VisitorImpl implements Visitor {
             if (op == BinaryOperator.assign) {
                 if (!isLvalue(binaryExpression.getLeft())) {
                     ErrorLogger.log("left side of assignment must be a valid lvalue", binaryExpression);
+                    hasError = true;
                 }
                 if (!binaryExpression.getRight().getType().subtype(binaryExpression.getLeft().getType())) {
                     ErrorLogger.log("unsupported operand type for " + op.name(), binaryExpression);
+                    hasError = true;
                     binaryExpression.setType(new NoType());
                 }
                 else {
@@ -353,6 +367,7 @@ public class VisitorImpl implements Visitor {
             }
             catch (ItemNotFoundException | ClassCastException e) {
                 ErrorLogger.log("variable " + identifier.getName() + " is not declared", identifier);
+                hasError = true;
                 identifier.setType(new NoType());
             }
         }
@@ -364,6 +379,7 @@ public class VisitorImpl implements Visitor {
         if (pass == Pass.Third) {
             if (!length.getExpression().getType().subtype(new ArrayType())) {
                 ErrorLogger.log("Length argument must be an array", length);
+                hasError = true;
                 length.setType(new NoType());
             }
             else
@@ -385,6 +401,7 @@ public class VisitorImpl implements Visitor {
             }
             else if (!(methodCall.getInstance().getType() instanceof  UserDefinedType)) {
                 ErrorLogger.log("method called on invalid instance", methodCall);
+                hasError = true;
                 methodCall.setType(new NoType());
             }
             else {
@@ -393,6 +410,7 @@ public class VisitorImpl implements Visitor {
                 if (classDec == null || !classDec.containsMethod(methodCall.getMethodName())) {
                     ErrorLogger.log("there is no method named " + methodCall.getMethodName().getName() +
                             " in class " + instanceType, methodCall);
+                    hasError = true;
                     methodCall.setType(new NoType());
                 }
                 else {
@@ -401,12 +419,14 @@ public class VisitorImpl implements Visitor {
                     List<VarDeclaration> decArgs = methodDec.getArgs();
                     if (currArgs.size() != decArgs.size()) {
                         ErrorLogger.log("method arguments don't match definition", methodCall);
+                        hasError = true;
                         methodCall.setType(new NoType());
                     }
                     else {
                         for (int i = 0; i < currArgs.size(); i++) {
                             if (!currArgs.get(i).getType().subtype(decArgs.get(i).getType())) {
                                 ErrorLogger.log("invalid arguments for method call", methodCall);
+                                hasError = true;
                                 methodCall.setType(new NoType());
                                 return;
                             }
@@ -449,6 +469,7 @@ public class VisitorImpl implements Visitor {
                 newClass.setType(typ);
             } catch (ItemNotFoundException | ClassCastException e) {
                 ErrorLogger.log("class " + newClass.getClassName().getName() + " is not declared", newClass);
+                hasError = true;
                 newClass.setType(new NoType());
             }
         }
@@ -475,6 +496,7 @@ public class VisitorImpl implements Visitor {
                 if (!unaryExpression.getValue().getType().subtype(new IntType())) {
                     ErrorLogger.log("unsupported operand type for " + unaryExpression.getUnaryOperator().name(),
                             unaryExpression);
+                    hasError = true;
                     unaryExpression.setType(new NoType());
                 }
                 else {
@@ -486,6 +508,7 @@ public class VisitorImpl implements Visitor {
                 if (!unaryExpression.getValue().getType().subtype(new BooleanType())) {
                     ErrorLogger.log("unsupported operand type for " + unaryExpression.getUnaryOperator().name(),
                             unaryExpression);
+                    hasError = true;
                     unaryExpression.setType(new NoType());
                 }
                 else {
@@ -529,6 +552,7 @@ public class VisitorImpl implements Visitor {
             }
             else {
                 ErrorLogger.log("lvalue cannot be null", assign);
+                hasError = true;
                 check = false;
             }
 
@@ -537,15 +561,18 @@ public class VisitorImpl implements Visitor {
             }
             else {
                 ErrorLogger.log("rvalue cannot be null", assign);
+                hasError = true;
                 check = false;
             }
             if (check) {
                 if (isLvalue(assign.getlValue())) {
                     if (!assign.getrValue().getType().subtype(assign.getlValue().getType())) {
                         ErrorLogger.log("unsupported operand type for " + BinaryOperator.assign, assign);
+                        hasError = true;
                     }
                 } else {
                     ErrorLogger.log("left side of assignment must be a valid lvalue", assign);
+                    hasError = true;
                 }
             }
         }
@@ -569,6 +596,7 @@ public class VisitorImpl implements Visitor {
         if (pass == Pass.Third) {
             if (!conditional.getExpression().getType().subtype(new BooleanType())) {
                 ErrorLogger.log("condition type must be boolean", conditional);
+                hasError = true;
             }
         }
     }
@@ -580,6 +608,7 @@ public class VisitorImpl implements Visitor {
         if (pass == Pass.Third) {
             if (!(methodCallInMain.getInstance().getType() instanceof  UserDefinedType)) {
                 ErrorLogger.log("method called on invalid instance", methodCallInMain);
+                hasError = true;
             }
             else {
                 String instanceType = methodCallInMain.getInstance().getType().toString();
@@ -587,6 +616,7 @@ public class VisitorImpl implements Visitor {
                 if (classDec == null || !classDec.containsMethod(methodCallInMain.getMethodName())) {
                     ErrorLogger.log("there is no method named " + methodCallInMain.getMethodName().getName() +
                             " in class " + instanceType, methodCallInMain);
+                    hasError = true;
                 }
                 else {
                     MethodDeclaration methodDec = classDec.getMethodDeclaration(methodCallInMain.getMethodName());
@@ -594,11 +624,13 @@ public class VisitorImpl implements Visitor {
                     List<VarDeclaration> decArgs = methodDec.getArgs();
                     if (currArgs.size() != decArgs.size()) {
                         ErrorLogger.log("method arguments don't match definition", methodCallInMain);
+                        hasError = true;
                     }
                     else {
                         for (int i = 0; i < currArgs.size(); i++) {
                             if (!currArgs.get(i).getType().subtype(decArgs.get(i).getType())) {
                                 ErrorLogger.log("invalid arguments for method call", methodCallInMain);
+                                hasError = true;
                                 return;
                             }
                         }
@@ -616,6 +648,7 @@ public class VisitorImpl implements Visitor {
         if (pass == Pass.Third) {
             if (!loop.getCondition().getType().subtype(new BooleanType())) {
                 ErrorLogger.log("condition type must be boolean", loop);
+                hasError = true;
             }
         }
     }
@@ -628,6 +661,7 @@ public class VisitorImpl implements Visitor {
             Type argType = write.getArg().getType();
             if (!argType.subtype(new IntType()) && !argType.subtype(new StringType()) && !argType.subtype(new ArrayType())) {
                 ErrorLogger.log("unsupported type for writeln", write);
+                hasError = true;
                 write.getArg().setType(new NoType());
             }
         }
