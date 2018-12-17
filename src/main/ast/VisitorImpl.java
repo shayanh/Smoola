@@ -378,6 +378,10 @@ public class VisitorImpl implements Visitor {
         if (pass != Pass.Third)
             methodCall.getMethodName().accept(this);
 
+        for (Expression arg : methodCall.getArgs()) {
+            arg.accept(this);
+        }
+
         if (pass == Pass.Third) {
             if (methodCall.getInstance().getType().subtype(new NoType())) {
                 methodCall.setType(new NoType());
@@ -393,13 +397,28 @@ public class VisitorImpl implements Visitor {
                 if (!classDec.containsMethod(methodCall.getMethodName())) {
                     ErrorLogger.log("there is no method named " + methodCall.getMethodName().getName() +
                             " in class " + instanceType, methodCall);
+                    methodCall.setType(new NoType());
                 }
-                methodCall.setType(classDec.getMethodType(methodCall.getMethodName()));
+                else {
+                    MethodDeclaration methodDec = classDec.getMethodDeclaration(methodCall.getMethodName());
+                    List<Expression> currArgs = methodCall.getArgs();
+                    List<VarDeclaration> decArgs = methodDec.getArgs();
+                    if (currArgs.size() != decArgs.size()) {
+                        ErrorLogger.log("method arguments don't match definition", methodCall);
+                        methodCall.setType(new NoType());
+                    }
+                    else {
+                        for (int i = 0; i < currArgs.size(); i++) {
+                            if (!currArgs.get(i).getType().subtype(decArgs.get(i).getType())) {
+                                ErrorLogger.log("invalid arguments for method call", methodCall);
+                                methodCall.setType(new NoType());
+                                return;
+                            }
+                        }
+                    }
+                    methodCall.setType(classDec.getMethodType(methodCall.getMethodName()));
+                }
             }
-        }
-
-        for (Expression arg : methodCall.getArgs()) {
-            arg.accept(this);
         }
 
     }

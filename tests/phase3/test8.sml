@@ -1,7 +1,6 @@
 class MainClass{
  def main(): int{
     writeln(a.main());
-    #TODO: variable gg in not declared
     new aa().ggg(aa,jkh);
     2*3;
     return 0;
@@ -50,7 +49,9 @@ class aa extends bb{
         2+3 = 2 + 3;
         if(2+4) then
             goh = pedarsag;
-        2 = 2 * 3 + true > 2;
+         #TODO : CHECK
+        a = 1 + (2 = 3)  + true > 2;
+        a = flkjas;
         x = 2.a();
         goh = 2 == 2 < 3;
         ali["sag"] = 2;
@@ -58,6 +59,7 @@ class aa extends bb{
         writeln(new aa().gggdfdff());
         writeln(this.koo());
         writeln(this.ggg(a));
+        a = new aa().ggg(harooommmmzaddee);
         return "string";
         #return new fsdfs().fds();
     }
@@ -65,8 +67,8 @@ class aa extends bb{
 class bb extends cc{
     var sag : cc;
     var goh : int;
-    def ggg(f : int):int{
-        return fksaja;
+    def ggg(f : bb):int{
+        return asfk;
     }
 }
 class cc{
