@@ -668,6 +668,8 @@ public class VisitorImpl implements Visitor {
     }
 
     private boolean isLvalue(Expression expression) {
+        if (expression instanceof BinaryExpression)
+            return false;
         if (expression instanceof ArrayCall || expression instanceof Identifier)
             return true;
         else return expression.getType() != null && expression.getType().subtype(new NoType());
