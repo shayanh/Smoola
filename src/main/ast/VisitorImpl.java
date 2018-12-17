@@ -102,12 +102,12 @@ public class VisitorImpl implements Visitor {
 
         if ((pass == Pass.Second || pass == Pass.Third) && classDeclaration.hasParent()) {
             String parName = classDeclaration.getParentName().getName();
+            ClassDeclaration x = classDecMap.get(parName);
+            classDeclaration.setParentClass(x);
             if (hasLoop(parName, classDeclaration.getName().getName())) {
                 ErrorLogger.log("dependencies cannot have a loop", classDeclaration);
                 System.exit(0);
             }
-            ClassDeclaration x = classDecMap.get(parName);
-            classDeclaration.setParentClass(x);
             while (x != null) {
                 SymbolTable s = classSymbolTable.get(x.getName().getName());
                 for (SymbolTableItem symbolTableItem : s.getItems().values()) {
@@ -379,6 +379,14 @@ public class VisitorImpl implements Visitor {
             methodCall.getMethodName().accept(this);
 
         if (pass == Pass.Third) {
+            if (methodCall.getInstance().getType().subtype(new NoType())) {
+                methodCall.setType(new NoType());
+            }
+            else if (!(methodCall.getInstance().getType() instanceof  UserDefinedType)) {
+                ErrorLogger.log("method called on invalid instance", methodCall);
+                methodCall.setType(new NoType());
+            }
+            else {
                 String instanceType = methodCall.getInstance().getType().toString();
                 ClassDeclaration classDec = classDecMap.get(instanceType);
                 // TODO: What if instance is noType?
@@ -387,6 +395,7 @@ public class VisitorImpl implements Visitor {
                             " in class " + instanceType, methodCall);
                 }
                 methodCall.setType(classDec.getMethodType(methodCall.getMethodName()));
+            }
         }
 
         for (Expression arg : methodCall.getArgs()) {
@@ -525,6 +534,7 @@ public class VisitorImpl implements Visitor {
                 ErrorLogger.log("lvalue cannot be null", assign);
                 check = false;
             }
+
             if (assign.getrValue() != null) {
                 assign.getrValue().accept(this);
             }
@@ -532,6 +542,7 @@ public class VisitorImpl implements Visitor {
                 ErrorLogger.log("rvalue cannot be null", assign);
                 check = false;
             }
+
             if (check && !assign.getrValue().getType().subtype(assign.getlValue().getType())) {
                 ErrorLogger.log("unsupported operand type for " + BinaryOperator.assign, assign);
             }
@@ -609,10 +620,13 @@ public class VisitorImpl implements Visitor {
 
     public boolean hasLoop(String parName, String className) {
         ClassDeclaration par = classDecMap.get(parName);
-        while (par != null) {
-            if (par.getParentName().getName().equals(className))
+        while(par != null) {
+            if (par.getName().getName().equals(className))
                 return true;
-            par = classDecMap.get(par.getParentName().getName());
+            if (par.hasParent())
+                par = classDecMap.get(par.getParentName().getName());
+            else
+                par = null;
         }
         return false;
     }
