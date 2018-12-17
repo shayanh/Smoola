@@ -2,7 +2,7 @@ class MainClass{
  def main(): int{
     writeln(a.main());
     new aa().ggg(aa,jkh);
-    2*3;
+    # 2*3;
     return 0;
  }
 

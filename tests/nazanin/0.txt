@@ -1,0 +1,80 @@
+class Test2 {
+	def main() : int {
+		i = 3;
+		new Test21().t();
+		return 0;
+	}
+}
+
+class Test21 extends Book{
+	var x : int[];
+	var xx : int;
+	var z :int;
+	var yy : string;
+	var v :Test21;#error????
+	def main(x6: int) : int {
+		var x2: Test32;
+		var a :int;
+		var x3: int; 
+		var b : boolean;
+		new Test21().main();
+
+		if (1 = 2) then
+			z = 2;
+		else{
+			z = 3;
+		}
+		writeln("");
+		writeln(new A());
+		while(2) {
+            a = 
+            a 
+            +
+            true;
+        }
+		xx = new int[10];
+		yy = new int[8];
+		a = new Test2().x3();
+		a = new Test2().i();
+		a = new Test2().main();
+		
+		v = new Test8();
+		x3 = 
+
+		x[true];
+		x = 
+		4 + x3;
+		x = true = x3;
+		    a = 
+            a 
+            +
+            false;
+
+
+            a = false* 2
+            + 3
+            - true
+            + (true*false) / 5 * !32  && (20
+            || 54);
+
+
+
+
+
+
+
+
+
+            b = 2 && 3;
+            x3[7] = 8;
+            a = x.length + 3 + 5
+            * 8 
+            + 3
+            /
+            4
+             + (true || false) && ( b || b);
+
+
+		return 0;
+	}
+}

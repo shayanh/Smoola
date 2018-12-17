@@ -16,7 +16,7 @@ class B extends C {
     }
 }
 
-class C extends A {
+class C extends B {
     def test3() : int {
         return 3;
     }
