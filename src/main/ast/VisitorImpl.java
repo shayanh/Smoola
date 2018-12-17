@@ -315,12 +315,10 @@ public class VisitorImpl implements Visitor {
             if (op == BinaryOperator.eq || op == BinaryOperator.neq) {
                 Type right = binaryExpression.getRight().getType();
                 Type left = binaryExpression.getLeft().getType();
-                if (left.subtype(new BooleanType()) || right.subtype(new BooleanType())) {
-                    ErrorLogger.log("unsupported operand type for " + op.name(), binaryExpression);
-                    binaryExpression.setType(new NoType());
-                }
-                else if (!(left.subtype(new IntType()) && right.subtype(new IntType())) &&
+                if (!(left.subtype(new IntType()) && right.subtype(new IntType())) &&
                         !(left.subtype(new StringType()) && right.subtype(new StringType())) &&
+                        !(left.subtype(new BooleanType()) && right.subtype(new BooleanType())) &&
+                        !(left.subtype(new ObjectType()) && right.subtype(new ObjectType())) &&
                         !(left.subtype(new ArrayType()) && right.subtype(new ArrayType())) &&
                         !(left.subtype(right) && right.subtype(left))) {
                     ErrorLogger.log("unsupported operand type for " + op.name(), binaryExpression);
