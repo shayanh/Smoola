@@ -345,11 +345,10 @@ public class VisitorImpl implements Visitor {
     public void visit(Identifier identifier) {
         if (pass == Pass.Third) {
             try {
-                //System.out.println(SymbolTable.top.getItems().keySet().toString());
                 SymbolTableVariableItem item = (SymbolTableVariableItem) SymbolTable.top.get(identifier.getName());
                 identifier.setType(item.getType());
             }
-            catch (ItemNotFoundException e) {
+            catch (ItemNotFoundException | ClassCastException e) {
                 ErrorLogger.log("variable " + identifier.getName() + " is not declared", identifier);
                 identifier.setType(new NoType());
             }
@@ -358,8 +357,6 @@ public class VisitorImpl implements Visitor {
 
     @Override
     public void visit(Length length) {
-        if (pass == Pass.PrintOrder)
-            System.out.println(length.toString());
         length.getExpression().accept(this);
         if (pass == Pass.Third) {
             if (!length.getExpression().getType().subtype(new ArrayType())) {
@@ -447,7 +444,7 @@ public class VisitorImpl implements Visitor {
                 typ.setName(newClass.getClassName());
                 typ.setClassDeclaration(classDecMap.get(newClass.getClassName().getName()));
                 newClass.setType(typ);
-            } catch (ItemNotFoundException e) {
+            } catch (ItemNotFoundException | ClassCastException e) {
                 ErrorLogger.log("class " + newClass.getClassName().getName() + " is not declared", newClass);
                 newClass.setType(new NoType());
             }
@@ -456,8 +453,6 @@ public class VisitorImpl implements Visitor {
 
     @Override
     public void visit(This instance) {
-        if (pass == Pass.PrintOrder)
-            System.out.println(instance.toString());
         if (pass == Pass.Third) {
             try {
                 SymbolTableVariableItem item = (SymbolTableVariableItem) SymbolTable.top.get("this");
@@ -470,8 +465,6 @@ public class VisitorImpl implements Visitor {
 
     @Override
     public void visit(UnaryExpression unaryExpression) {
-        if (pass == Pass.PrintOrder)
-            System.out.println(unaryExpression.toString());
         unaryExpression.getValue().accept(this);
 
         if (pass == Pass.Third) {
@@ -501,41 +494,30 @@ public class VisitorImpl implements Visitor {
 
     @Override
     public void visit(BooleanValue value) {
-        if (pass == Pass.PrintOrder)
-            System.out.println(value.toString());
         if (pass == Pass.Third)
             value.setType(new BooleanType());
     }
 
     @Override
     public void visit(IntValue value) {
-        if (pass == Pass.PrintOrder)
-            System.out.println(value.toString());
         if (pass == Pass.Third)
             value.setType(new IntType());
     }
 
     @Override
     public void visit(StringValue value) {
-        if (pass == Pass.PrintOrder)
-            System.out.println(value.toString());
         if (pass == Pass.Third)
             value.setType(new StringType());
     }
 
     @Override
     public void visit(ObjectValue value) {
-        if (pass == Pass.PrintOrder)
-            System.out.println(value.toString());
         if (pass == Pass.Third)
             value.setType(new ObjectType());
     }
 
     @Override
     public void visit(Assign assign) {
-        if (pass == Pass.PrintOrder)
-            System.out.println(assign.toString());
-
         if (pass == Pass.Third) {
             boolean check = true;
 
@@ -568,8 +550,6 @@ public class VisitorImpl implements Visitor {
 
     @Override
     public void visit(Block block) {
-        if (pass == Pass.PrintOrder)
-            System.out.println(block.toString());
         for (Statement statement : block.getBody()) {
             statement.accept(this);
         }
@@ -577,8 +557,6 @@ public class VisitorImpl implements Visitor {
 
     @Override
     public void visit(Conditional conditional) {
-        if (pass == Pass.PrintOrder)
-            System.out.println(conditional.toString());
         conditional.getExpression().accept(this);
         conditional.getConsequenceBody().accept(this);
         if (conditional.getAlternativeBody() != null) {
@@ -629,8 +607,6 @@ public class VisitorImpl implements Visitor {
 
     @Override
     public void visit(While loop) {
-        if (pass == Pass.PrintOrder)
-            System.out.println(loop.toString());
         loop.getCondition().accept(this);
         loop.getBody().accept(this);
 
@@ -643,8 +619,6 @@ public class VisitorImpl implements Visitor {
 
     @Override
     public void visit(Write write) {
-        if (pass == Pass.PrintOrder)
-            System.out.println(write.toString());
         write.getArg().accept(this);
 
         if (pass == Pass.Third) {
