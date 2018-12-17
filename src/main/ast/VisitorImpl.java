@@ -250,8 +250,8 @@ public class VisitorImpl implements Visitor {
         } catch (ItemAlreadyExistsException e) {
             if (pass == Pass.Second) {
                 ErrorLogger.log("Redefinition of variable " + varName, varDeclaration);
+                hasError = true;
             }
-            hasError = true;
         }
     }
 
@@ -441,16 +441,14 @@ public class VisitorImpl implements Visitor {
 
     @Override
     public void visit(NewArray newArray) {
-        if (pass == Pass.PrintOrder)
-            System.out.println(newArray.toString());
         newArray.getExpression().accept(this);
 
         IntValue intValue = (IntValue) newArray.getExpression();
         if (intValue.getConstant() == 0) {
             if (pass == Pass.Second) {
                 ErrorLogger.log("Array length should not be zero or negative", newArray);
+                hasError = true;
             }
-            hasError = true;
         }
 
         if (pass == Pass.Third) {
@@ -544,6 +542,15 @@ public class VisitorImpl implements Visitor {
 
     @Override
     public void visit(Assign assign) {
+        if (pass == Pass.Second) {
+            if (assign.getlValue() != null) {
+                assign.getlValue().accept(this);
+            }
+            if (assign.getrValue() != null) {
+                assign.getrValue().accept(this);
+            }
+        }
+
         if (pass == Pass.Third) {
             boolean check = true;
 
