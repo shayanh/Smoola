@@ -104,11 +104,16 @@ public class VisitorImpl implements Visitor {
             String parName = classDeclaration.getParentName().getName();
             ClassDeclaration x = classDecMap.get(parName);
             classDeclaration.setParentClass(x);
-            if (hasLoop(parName, classDeclaration.getName().getName())) {
-                ErrorLogger.log("dependencies cannot have a loop", classDeclaration);
-                System.exit(0);
-            }
+            HashMap<String, Boolean> mark = new HashMap<>();
+            mark.put(classDeclaration.getName().getName(), Boolean.TRUE);
             while (x != null) {
+                if (mark.get(x.getName().getName()) != null) {
+                    if (pass == Pass.Third) {
+                        ErrorLogger.log("class "+classDeclaration.getName().getName()+" has circular dependencies", classDeclaration);
+                    }
+                    break;
+                }
+                mark.put(x.getName().getName(), Boolean.TRUE);
                 SymbolTable s = classSymbolTable.get(x.getName().getName());
                 for (SymbolTableItem symbolTableItem : s.getItems().values()) {
                     if (symbolTableItem.getKey().equals("this"))
@@ -634,18 +639,5 @@ public class VisitorImpl implements Visitor {
         if (expression instanceof ArrayCall || expression instanceof Identifier)
             return true;
         else return expression.getType() != null && expression.getType().subtype(new NoType());
-    }
-
-    private boolean hasLoop(String parName, String className) {
-        ClassDeclaration par = classDecMap.get(parName);
-        while(par != null) {
-            if (par.getName().getName().equals(className))
-                return true;
-            if (par.hasParent())
-                par = classDecMap.get(par.getParentName().getName());
-            else
-                par = null;
-        }
-        return false;
     }
 }
