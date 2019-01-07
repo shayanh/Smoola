@@ -27,4 +27,9 @@ public class StringValue extends Value {
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }
+
+    @Override
+    public String getGeneratedCode() {
+        return "ldc " + constant + "\n";
+    }
 }

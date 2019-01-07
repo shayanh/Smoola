@@ -14,4 +14,9 @@ public class BooleanType extends Type {
     public boolean subtype(Type t) {
         return (t instanceof ObjectType) || (t instanceof BooleanType);
     }
+
+    @Override
+    public String getTypeCode() {
+        return "Z";
+    }
 }

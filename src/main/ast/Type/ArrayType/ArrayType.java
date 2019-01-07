@@ -22,4 +22,9 @@ public class ArrayType extends Type {
     public boolean subtype(Type t) {
         return (t instanceof ObjectType) || (t instanceof ArrayType);
     }
+
+    @Override
+    public String getTypeCode() {
+        return "[I";
+    }
 }

@@ -48,4 +48,15 @@ public class MethodCall extends Expression {
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }
+
+    @Override
+    public String getGeneratedCode() {
+        String code = "";
+        String argCode = "";
+        for (Expression arg : args) {
+            code += arg.getGeneratedCode();
+            argCode += arg.getType().
+        }
+        code += "Invokevirtual " + instance.getType() + "/" + methodName.getName() +
+    }
 }

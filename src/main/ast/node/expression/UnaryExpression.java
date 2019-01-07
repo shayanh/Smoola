@@ -36,5 +36,22 @@ public class UnaryExpression extends Expression {
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }
+
+    @Override
+    public String getGeneratedCode() {
+        String code = "";
+        if (unaryOperator == UnaryOperator.minus) {
+            code += value.getGeneratedCode();
+            code += "ineg\n";
+        }
+        else {
+            code += value.getGeneratedCode();
+            code += "ifne 4\n" +
+                    "iconst_1\n" +
+                    "goto 2\n" +
+                    "iconst_0\n";
+        }
+        return code;
+    }
 }
 

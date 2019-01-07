@@ -49,4 +49,9 @@ public class UserDefinedType extends Type {
         }
         return false;
     }
+
+    @Override
+    public String getTypeCode() {
+        return "L" + classDeclaration.getName().getName() +  ";";
+    }
 }

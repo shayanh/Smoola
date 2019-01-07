@@ -37,4 +37,9 @@ public class VarDeclaration extends Declaration {
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }
+
+    @Override
+    public String getGeneratedCode() {
+        return null;
+    }
 }

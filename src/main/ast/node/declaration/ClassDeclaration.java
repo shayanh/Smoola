@@ -64,6 +64,22 @@ public class ClassDeclaration extends Declaration{
         visitor.visit(this);
     }
 
+    @Override
+    public String getGeneratedCode() {
+        String code = ".class public " + name.getName() + "\n";
+
+        if (!this.hasParent())
+            code += ".super java/lang/Object\n";
+        else
+            code += ".super " + parentName.getName() + "\n";
+
+        for (VarDeclaration var : varDeclarations) {
+            code += ".field protected " + var.getIdentifier().getName() + " " + var.getType().getTypeCode() + "\n";
+        }
+
+        return code;
+    }
+
     public ClassDeclaration getParentClass() {
         return parentClass;
     }

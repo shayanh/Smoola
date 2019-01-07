@@ -27,4 +27,12 @@ public class BooleanValue extends Value {
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }
+
+    @Override
+    public String getGeneratedCode() {
+        if (constant)
+            return "iconst_1\n";
+        else
+            return "iconst_0\n";
+    }
 }

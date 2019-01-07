@@ -11,4 +11,9 @@ public class This extends Expression {
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }
+
+    @Override
+    public String getGeneratedCode() {
+        return "aload_0\n";
+    }
 }

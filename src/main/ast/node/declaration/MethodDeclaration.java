@@ -76,4 +76,17 @@ public class MethodDeclaration extends Declaration {
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }
+
+    @Override
+    public String getGeneratedCode() {
+        String code = ".method public " + name.getName() + "(";
+        for (VarDeclaration arg : args) {
+            code += arg.getType().getTypeCode();
+        }
+        code += ")";
+        code += this.getReturnType().getTypeCode();
+        code += "\n";
+
+        return code;
+    }
 }

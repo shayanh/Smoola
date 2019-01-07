@@ -14,4 +14,9 @@ public class StringType extends Type {
     public boolean subtype(Type t) {
         return (t instanceof ObjectType) || (t instanceof StringType);
     }
+
+    @Override
+    public String getTypeCode() {
+        return "Ljava/lang/String;";
+    }
 }

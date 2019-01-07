@@ -10,4 +10,9 @@ public class NoType extends Type {
     public boolean subtype(Type t) {
         return true;
     }
+
+    @Override
+    public String getTypeCode() {
+        return null;
+    }
 }

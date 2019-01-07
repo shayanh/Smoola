@@ -35,4 +35,12 @@ public class ArrayCall extends Expression {
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }
+
+    @Override
+    public String getGeneratedCode() {
+        String code = instance.getGeneratedCode();
+        code += index.getGeneratedCode();
+        code += "iaload\n";
+        return code;
+    }
 }
