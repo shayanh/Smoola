@@ -57,6 +57,6 @@ public class MethodCall extends Expression {
             code += arg.getGeneratedCode();
             argCode += arg.getType().
         }
-        code += "Invokevirtual " + instance.getType() + "/" + methodName.getName() +
+        code += "Invokevirtual " + instance.getType() + "/" + methodName.getName();
     }
 }

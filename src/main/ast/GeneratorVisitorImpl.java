@@ -1,5 +1,8 @@
 package ast;
 
+import ast.Type.PrimitiveType.BooleanType;
+import ast.Type.PrimitiveType.IntType;
+import ast.Type.PrimitiveType.StringType;
 import ast.node.Program;
 import ast.node.declaration.ClassDeclaration;
 import ast.node.declaration.MethodDeclaration;
@@ -26,6 +29,7 @@ public class GeneratorVisitorImpl implements Visitor {
 
     private HashMap<String, SymbolTable> classSymbolTable;
     private ArrayList<String> generatedCode = new ArrayList<>();
+    private boolean classVar = false;
 
     public void writeToFile(String name) {
         try {
@@ -62,9 +66,12 @@ public class GeneratorVisitorImpl implements Visitor {
 
         generatedCode.add(classDeclaration.getGeneratedCode());
 
+        classVar = true;
         for (VarDeclaration varDec : classDeclaration.getVarDeclarations()) {
             varDec.accept(this);
         }
+        classVar = false;
+
         for (MethodDeclaration methodDec : classDeclaration.getMethodDeclarations()) {
             methodDec.accept(this);
         }
@@ -107,6 +114,21 @@ public class GeneratorVisitorImpl implements Visitor {
             SymbolTable.top.put(symbolTableVariableItem);
         } catch (ItemAlreadyExistsException e) {
             e.printStackTrace();
+        }
+
+        if (!classVar) {
+            if (varDeclaration.getType().subtype(new BooleanType())) {
+                generatedCode.add("iconst_0\n" +
+                        "istore " + String.valueOf(symbolTableVariableItem.getIndex()) + "\n");
+            }
+            else if (varDeclaration.getType().subtype(new IntType())) {
+                generatedCode.add("iconst_0\n" +
+                        "istore " + String.valueOf(symbolTableVariableItem.getIndex()) + "\n");
+            }
+            else if (varDeclaration.getType().subtype(new StringType())) {
+                generatedCode.add("ldc \"\"\n" +
+                        "astore " + String.valueOf(symbolTableVariableItem.getIndex()) + "\n");
+            }
         }
     }
 
