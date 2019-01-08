@@ -14,6 +14,6 @@ public class This extends Expression {
 
     @Override
     public String getGeneratedCode() {
-        return "aload_0\n";
+        return "aload_0";
     }
 }

@@ -1,6 +1,7 @@
 package ast.node.expression;
 
 import ast.Visitor;
+import ast.node.expression.Value.IntValue;
 
 public class Length extends Expression {
     private Expression expression;
@@ -28,6 +29,7 @@ public class Length extends Expression {
 
     @Override
     public String getGeneratedCode() {
-        return null;
+        IntValue value = (IntValue) expression;
+        return "ldc " + String.valueOf(value.getConstant());
     }
 }

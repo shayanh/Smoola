@@ -142,6 +142,7 @@ public class GeneratorVisitorImpl implements Visitor {
     public void visit(ArrayCall arrayCall) {
         arrayCall.getInstance().accept(this);
         arrayCall.getIndex().accept(this);
+        generatedCode.add(arrayCall.getGeneratedCode());
     }
 
     @Override
@@ -167,7 +168,7 @@ public class GeneratorVisitorImpl implements Visitor {
 
     @Override
     public void visit(Length length) {
-        length.getExpression().accept(this);
+        generatedCode.add(length.getGeneratedCode());
     }
 
     @Override
@@ -189,6 +190,7 @@ public class GeneratorVisitorImpl implements Visitor {
     @Override
     public void visit(NewArray newArray) {
         newArray.getExpression().accept(this);
+        generatedCode.add(newArray.getGeneratedCode());
     }
 
     @Override
@@ -200,7 +202,7 @@ public class GeneratorVisitorImpl implements Visitor {
 
     @Override
     public void visit(This instance) {
-
+        generatedCode.add(instance.getGeneratedCode());
     }
 
     @Override

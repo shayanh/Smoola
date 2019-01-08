@@ -24,6 +24,6 @@ public class NewArray extends Expression {
 
     @Override
     public String getGeneratedCode() {
-        return null;
+        return "newarray int";
     }
 }

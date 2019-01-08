@@ -38,9 +38,6 @@ public class ArrayCall extends Expression {
 
     @Override
     public String getGeneratedCode() {
-        String code = instance.getGeneratedCode();
-        code += index.getGeneratedCode();
-        code += "iaload";
-        return code;
+        return "iaload";
     }
 }
