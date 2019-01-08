@@ -25,4 +25,9 @@ public class Length extends Expression {
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }
+
+    @Override
+    public String getGeneratedCode() {
+        return null;
+    }
 }

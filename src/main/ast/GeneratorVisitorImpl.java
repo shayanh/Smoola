@@ -2,7 +2,6 @@ package ast;
 
 import ast.Type.PrimitiveType.BooleanType;
 import ast.Type.PrimitiveType.IntType;
-import ast.Type.PrimitiveType.StringType;
 import ast.node.Program;
 import ast.node.declaration.ClassDeclaration;
 import ast.node.declaration.MethodDeclaration;
@@ -13,10 +12,7 @@ import ast.node.expression.Value.IntValue;
 import ast.node.expression.Value.ObjectValue;
 import ast.node.expression.Value.StringValue;
 import ast.node.statement.*;
-import symbolTable.ItemAlreadyExistsException;
-import symbolTable.SymbolTable;
-import symbolTable.SymbolTableMethodItem;
-import symbolTable.SymbolTableVariableItem;
+import symbolTable.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -28,8 +24,11 @@ import java.util.HashMap;
 public class GeneratorVisitorImpl implements Visitor {
 
     private HashMap<String, SymbolTable> classSymbolTable;
+    private HashMap<String, ClassDeclaration> classDecMap;
     private ArrayList<String> generatedCode = new ArrayList<>();
     private boolean classVar = false;
+
+    public void setClassSymbolTable(HashMap<String, SymbolTable> classSymbolTable) { this.classSymbolTable = classSymbolTable; }
 
     public void writeToFile(String name) {
         try {
@@ -54,7 +53,6 @@ public class GeneratorVisitorImpl implements Visitor {
         for (ClassDeclaration classDec : program.getClasses()) {
             generatedCode = new ArrayList<>();
             classDec.accept(this);
-            classDec.accept(this);
             writeToFile(classDec.getName().getName());
         }
     }
@@ -66,13 +64,24 @@ public class GeneratorVisitorImpl implements Visitor {
 
         generatedCode.add(classDeclaration.getGeneratedCode());
 
+        String initCode = "";
         classVar = true;
         for (VarDeclaration varDec : classDeclaration.getVarDeclarations()) {
             varDec.accept(this);
+//            if (varDec.getType().subtype(new StringType()))
+//                initCode += "aload_0\n" + "ldc \n" + "putfield " + classDeclaration.getName().getName() + "/" +
+//                        varDec.getType().getTypeCode() + "\n";
+//            else if (varDec.getType().subtype(new IntType()) || varDec.getType().subtype(new BooleanType()))
+//                initCode += "aload_0\n" + "iconst_0\n" + "putfield " + classDeclaration.getName().getName() + "/" +
+//                        varDec.getType().getTypeCode() + "\n";
         }
         classVar = false;
+       // generatedCode.add(initCode);
+
+        generatedCode.add(classDeclaration.getInitMethodDecCode());
 
         for (MethodDeclaration methodDec : classDeclaration.getMethodDeclarations()) {
+            generatedCode.add(methodDec.getGeneratedCode());
             methodDec.accept(this);
         }
 
@@ -81,15 +90,6 @@ public class GeneratorVisitorImpl implements Visitor {
 
     @Override
     public void visit(MethodDeclaration methodDeclaration) {
-        String methodName = methodDeclaration.getName().getName();
-        SymbolTableMethodItem symbolTableMethodItem = new SymbolTableMethodItem(methodName, null);
-
-        try {
-            SymbolTable.top.put(symbolTableMethodItem);
-        } catch (ItemAlreadyExistsException e) {
-            e.printStackTrace();
-        }
-
         SymbolTable symbolTable = new SymbolTable(SymbolTable.top);
         SymbolTable.push(symbolTable);
 
@@ -102,7 +102,10 @@ public class GeneratorVisitorImpl implements Visitor {
         for (Statement statement : methodDeclaration.getBody()) {
             statement.accept(this);
         }
+
         methodDeclaration.getReturnValue().accept(this);
+        generatedCode.add(methodDeclaration.getReturnCode());
+        generatedCode.add(".end method");
 
         SymbolTable.pop();
     }
@@ -117,18 +120,21 @@ public class GeneratorVisitorImpl implements Visitor {
         }
 
         if (!classVar) {
-            if (varDeclaration.getType().subtype(new BooleanType())) {
-                generatedCode.add("iconst_0\n" +
-                        "istore " + String.valueOf(symbolTableVariableItem.getIndex()) + "\n");
-            }
-            else if (varDeclaration.getType().subtype(new IntType())) {
-                generatedCode.add("iconst_0\n" +
-                        "istore " + String.valueOf(symbolTableVariableItem.getIndex()) + "\n");
-            }
-            else if (varDeclaration.getType().subtype(new StringType())) {
-                generatedCode.add("ldc \"\"\n" +
-                        "astore " + String.valueOf(symbolTableVariableItem.getIndex()) + "\n");
-            }
+//            if (varDeclaration.getType().subtype(new BooleanType())) {
+//                generatedCode.add("iconst_0\n" +
+//                        "istore " + String.valueOf(symbolTableVariableItem.getIndex()) + "\n");
+//            }
+//            else if (varDeclaration.getType().subtype(new IntType())) {
+//                generatedCode.add("iconst_0\n" +
+//                        "istore " + String.valueOf(symbolTableVariableItem.getIndex()) + "\n");
+//            }
+//            else if (varDeclaration.getType().subtype(new StringType())) {
+//                generatedCode.add("ldc \"\"\n" +
+//                        "astore " + String.valueOf(symbolTableVariableItem.getIndex()) + "\n");
+//            }
+        }
+        else {
+            generatedCode.add(varDeclaration.getGeneratedCode());
         }
     }
 
@@ -142,11 +148,21 @@ public class GeneratorVisitorImpl implements Visitor {
     public void visit(BinaryExpression binaryExpression) {
         binaryExpression.getLeft().accept(this);
         binaryExpression.getRight().accept(this);
+        generatedCode.add(binaryExpression.getGeneratedCode());
     }
 
     @Override
     public void visit(Identifier identifier) {
-
+        try {
+            SymbolTableVariableItem item = (SymbolTableVariableItem) SymbolTable.top.get(identifier.getName());
+            if (item.getType().subtype(new IntType()) || item.getType().subtype(new BooleanType()))
+                generatedCode.add("iload " + item.getIndex());
+            else
+                generatedCode.add("aload " + item.getIndex());
+        }
+        catch (ItemNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -158,9 +174,16 @@ public class GeneratorVisitorImpl implements Visitor {
     public void visit(MethodCall methodCall) {
         methodCall.getInstance().accept(this);
 
+        MethodDeclaration methodDec = classDecMap.get(methodCall.getInstance().getType().toString())
+                .getMethodDeclaration(methodCall.getMethodName());
+
         for (Expression arg : methodCall.getArgs()) {
             arg.accept(this);
         }
+
+        generatedCode.add("invokevirtual " + methodCall.getInstance().getType().toString() + "/"
+                + methodDec.getInvokationCode());
+
     }
 
     @Override
@@ -170,7 +193,9 @@ public class GeneratorVisitorImpl implements Visitor {
 
     @Override
     public void visit(NewClass newClass) {
-
+        generatedCode.add(newClass.getGeneratedCode());
+        ClassDeclaration classDec = classDecMap.get(newClass.getClassName().getName());
+        generatedCode.add(classDec.getInitMethod());
     }
 
     @Override
@@ -185,27 +210,28 @@ public class GeneratorVisitorImpl implements Visitor {
 
     @Override
     public void visit(BooleanValue value) {
-
+        generatedCode.add(value.getGeneratedCode());
     }
 
     @Override
     public void visit(IntValue value) {
-
+        generatedCode.add(value.getGeneratedCode());
     }
 
     @Override
     public void visit(StringValue value) {
-
+        generatedCode.add(value.getGeneratedCode());
     }
 
     @Override
     public void visit(ObjectValue value) {
-
+        //TODO
     }
 
     @Override
     public void visit(Assign assign) {
-
+        assign.getrValue().accept(this);
+        assign.getlValue().accept(this);
     }
 
     @Override
@@ -237,7 +263,9 @@ public class GeneratorVisitorImpl implements Visitor {
 
     @Override
     public void visit(Write write) {
+        generatedCode.add(write.getPrintStream());
         write.getArg().accept(this);
+        generatedCode.add(write.getInvokeCode());
     }
 
     public void starterClassCodeGenerator(String mainClass) {
@@ -255,7 +283,11 @@ public class GeneratorVisitorImpl implements Visitor {
                 "invokespecial " + mainClass + "/<init>()V\n" +
                 "invokevirtual " + mainClass + "/main()I\n" +
                 "return\n" +
-                ".end method\n";
+                ".end method";
         generatedCode.add(code);
+    }
+
+    public void setClassDecMap(HashMap<String, ClassDeclaration> classDecMap) {
+        this.classDecMap = classDecMap;
     }
 }

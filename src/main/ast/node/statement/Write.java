@@ -26,4 +26,13 @@ public class Write extends Statement {
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }
+
+    public String getInvokeCode() {
+        return "invokevirtual java/io/PrintStream/println(I)V";
+    }
+
+    public String getPrintStream() {
+        return "getstatic java/lang/System/out Ljava/io/PrintStream;";
+    }
+
 }

@@ -30,6 +30,6 @@ public class IntValue extends Value {
 
     @Override
     public String getGeneratedCode() {
-        return "ldc " + String.valueOf(constant) + "\n";
+        return "ldc " + String.valueOf(constant);
     }
 }

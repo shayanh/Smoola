@@ -1,6 +1,8 @@
 import java.io.IOException;
 
+import ast.GeneratorVisitorImpl;
 import ast.Pass;
+import ast.Visitor;
 import ast.VisitorImpl;
 import ast.node.Program;
 import org.antlr.v4.runtime.*;
@@ -22,5 +24,9 @@ public class mySmoola {
             v.setPass(Pass.Third);
             prog.accept(v);
         }
+        Visitor codeGenerator = new GeneratorVisitorImpl();
+        ((GeneratorVisitorImpl) codeGenerator).setClassSymbolTable(v.getClassSymbolTable());
+        ((GeneratorVisitorImpl) codeGenerator).setClassDecMap(v.getClassDecMap());
+        prog.accept(codeGenerator);
     }
 }

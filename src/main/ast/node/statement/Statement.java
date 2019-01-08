@@ -12,4 +12,9 @@ public class Statement extends Node {
 
     @Override
     public void accept(Visitor visitor) {}
+
+    @Override
+    public String getGeneratedCode() {
+        return null;
+    }
 }

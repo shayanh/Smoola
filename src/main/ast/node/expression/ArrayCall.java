@@ -40,7 +40,7 @@ public class ArrayCall extends Expression {
     public String getGeneratedCode() {
         String code = instance.getGeneratedCode();
         code += index.getGeneratedCode();
-        code += "iaload\n";
+        code += "iaload";
         return code;
     }
 }

@@ -30,6 +30,6 @@ public class StringValue extends Value {
 
     @Override
     public String getGeneratedCode() {
-        return "ldc \"" + constant + "\"\n";
+        return "ldc \"" + constant + "\"";
     }
 }

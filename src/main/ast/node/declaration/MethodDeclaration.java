@@ -1,5 +1,7 @@
 package ast.node.declaration;
 
+import ast.Type.PrimitiveType.BooleanType;
+import ast.Type.PrimitiveType.IntType;
 import ast.Type.Type;
 import ast.Visitor;
 import ast.node.expression.Expression;
@@ -86,6 +88,28 @@ public class MethodDeclaration extends Declaration {
         code += ")";
         code += this.getReturnType().getTypeCode();
         code += "\n";
+        code += ".limit locals " + String.valueOf(args.size() + localVars.size() + 1) + "\n";
+        code += ".limit stack 20";
+
+        return code;
+    }
+
+    public String getReturnCode() {
+        String code = "";
+        if (returnType.subtype(new IntType()) || returnType.subtype(new BooleanType()))
+            code = "ireturn";
+        else
+            code = "areturn";
+        return code;
+    }
+
+    public String getInvokationCode() {
+        String code = name.getName() + "(";
+        for (VarDeclaration arg : args) {
+            code += arg.getType().getTypeCode();
+        }
+        code += ")";
+        code += this.getReturnType().getTypeCode();
 
         return code;
     }

@@ -31,8 +31,8 @@ public class BooleanValue extends Value {
     @Override
     public String getGeneratedCode() {
         if (constant)
-            return "iconst_1\n";
+            return "iconst_1";
         else
-            return "iconst_0\n";
+            return "iconst_0";
     }
 }

@@ -1,5 +1,6 @@
 package ast.node.declaration;
 
+import ast.Type.PrimitiveType.BooleanType;
 import ast.Type.Type;
 import ast.Visitor;
 import ast.node.expression.Identifier;
@@ -40,6 +41,6 @@ public class VarDeclaration extends Declaration {
 
     @Override
     public String getGeneratedCode() {
-        return null;
+        return ".field protected " + identifier.getName() + " " + type.getTypeCode();
     }
 }

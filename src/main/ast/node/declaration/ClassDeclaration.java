@@ -68,16 +68,35 @@ public class ClassDeclaration extends Declaration{
     public String getGeneratedCode() {
         String code = ".class public " + name.getName() + "\n";
 
-        if (!this.hasParent())
-            code += ".super java/lang/Object\n";
-        else
-            code += ".super " + parentName.getName() + "\n";
-
-        for (VarDeclaration var : varDeclarations) {
-            code += ".field protected " + var.getIdentifier().getName() + " " + var.getType().getTypeCode() + "\n";
+        if (!this.hasParent()) {
+            code += ".super java/lang/Object";
+        }
+        else {
+            code += ".super " + parentName.getName();
         }
 
         return code;
+    }
+
+    public String getInitMethodDecCode() {
+        String par;
+
+        if (!this.hasParent()) {
+            par = "java/lang/Object";
+        }
+        else {
+            par = parentName.getName();
+        }
+
+        return ".method public <init>()V\n" +
+                "aload_0\n" +
+                "invokespecial " + par + "/<init>()V\n" +
+                "return\n" +
+                ".end method";
+    }
+
+    public String getInitMethod() {
+        return "invokespecial " + name.getName() + "/<init>()V";
     }
 
     public ClassDeclaration getParentClass() {

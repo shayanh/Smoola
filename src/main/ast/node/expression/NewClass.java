@@ -28,6 +28,7 @@ public class NewClass extends Expression {
 
     @Override
     public String getGeneratedCode() {
-        return null;
+        return "new " + className.getName() + "\n"
+                + "dup";
     }
 }

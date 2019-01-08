@@ -46,4 +46,18 @@ public class BinaryExpression extends Expression {
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }
+
+    @Override
+    public String getGeneratedCode() {
+        if (binaryOperator == BinaryOperator.add)
+            return "iadd";
+        else if (binaryOperator == BinaryOperator.sub)
+            return "isub";
+        else if (binaryOperator == BinaryOperator.mult)
+            return "imul";
+        else if (binaryOperator == BinaryOperator.div)
+            return "idiv";
+        //TODO: lt and gt need branch
+        return null;
+    }
 }

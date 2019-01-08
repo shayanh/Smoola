@@ -20,6 +20,7 @@ import ast.node.expression.Value.StringValue;
 import ast.node.statement.*;
 import symbolTable.*;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -48,6 +49,8 @@ public class VisitorImpl implements Visitor {
     public boolean hasError() {
         return hasError;
     }
+
+    public HashMap<String, SymbolTable> getClassSymbolTable() { return this.classSymbolTable; }
 
     @Override
     public void visit(Program program) {
@@ -158,6 +161,12 @@ public class VisitorImpl implements Visitor {
     @Override
     public void visit(MethodDeclaration methodDeclaration) {
         String methodName = methodDeclaration.getName().getName();
+
+        ArrayList<Type> argTypes = new ArrayList<>();
+        for (VarDeclaration arg : methodDeclaration.getArgs()) {
+            argTypes.add(arg.getType());
+        }
+
         SymbolTableMethodItem symbolTableMethodItem = new SymbolTableMethodItem(methodName, null);
         try {
             SymbolTable.top.put(symbolTableMethodItem);
@@ -680,5 +689,9 @@ public class VisitorImpl implements Visitor {
         if (expression instanceof ArrayCall || expression instanceof Identifier)
             return true;
         else return expression.getType() != null && expression.getType().subtype(new NoType());
+    }
+
+    public HashMap<String, ClassDeclaration> getClassDecMap() {
+        return classDecMap;
     }
 }

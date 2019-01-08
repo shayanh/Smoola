@@ -51,12 +51,6 @@ public class MethodCall extends Expression {
 
     @Override
     public String getGeneratedCode() {
-        String code = "";
-        String argCode = "";
-        for (Expression arg : args) {
-            code += arg.getGeneratedCode();
-            argCode += arg.getType().
-        }
-        code += "Invokevirtual " + instance.getType() + "/" + methodName.getName();
+        return "Invokevirtual ";
     }
 }
