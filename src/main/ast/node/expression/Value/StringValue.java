@@ -33,7 +33,7 @@ public class StringValue extends Value {
     @Override
     public ArrayList<String> getGeneratedCode() {
         ArrayList<String> code = new ArrayList<>();
-        code.add("ldc \"" + constant + "\"");
+        code.add("ldc " + constant);
         return code;
     }
 }
