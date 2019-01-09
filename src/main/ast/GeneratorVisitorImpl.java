@@ -399,7 +399,7 @@ public class GeneratorVisitorImpl implements Visitor {
         }
         else {
             String contLabel = getFreshLabel();
-            generatedCode.add("ifeq" + contLabel);
+            generatedCode.add("ifeq " + contLabel);
             conditional.getConsequenceBody().accept(this);
             generatedCode.add(contLabel + " :");
         }
