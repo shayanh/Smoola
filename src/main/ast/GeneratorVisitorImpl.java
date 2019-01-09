@@ -1,6 +1,5 @@
 package ast;
 
-import ast.Type.ArrayType.ArrayType;
 import ast.Type.PrimitiveType.BooleanType;
 import ast.Type.PrimitiveType.IntType;
 import ast.Type.PrimitiveType.StringType;
@@ -126,21 +125,9 @@ public class GeneratorVisitorImpl implements Visitor {
     public void visit(VarDeclaration varDeclaration) {
         int index = -1;
         if (!classVar) {
-            if (varDeclaration.getType().subtype(new BooleanType())) {
-                generatedCode.add("iconst_0");
-                generatedCode.add("istore " + String.valueOf(symbolTableVariableItem.getIndex()));
-            }
-            else if (varDeclaration.getType().subtype(new IntType())) {
-                generatedCode.add("iconst_0");
-                generatedCode.add("istore " + String.valueOf(symbolTableVariableItem.getIndex()));
-            }
-            else if (varDeclaration.getType().subtype(new StringType())) {
-                generatedCode.add("ldc ");
-                generatedCode.add("astore " + String.valueOf(symbolTableVariableItem.getIndex()));
-            }
+            index = variableIndex;
         }
         else {
-            index = variableIndex;
             generatedCode.addAll(varDeclaration.getGeneratedCode());
         }
         String varName = varDeclaration.getIdentifier().getName();
@@ -149,6 +136,16 @@ public class GeneratorVisitorImpl implements Visitor {
             SymbolTable.top.put(symbolTableVariableItem);
         } catch (ItemAlreadyExistsException e) {
             e.printStackTrace();
+        }
+        if (!classVar) {
+            if (varDeclaration.getType().subtype(new BooleanType()) || varDeclaration.getType().subtype(new IntType())) {
+                generatedCode.add("iconst_0");
+                generatedCode.add("istore " + String.valueOf(symbolTableVariableItem.getIndex()));
+            }
+            else if (varDeclaration.getType().subtype(new StringType())) {
+                generatedCode.add("ldc ");
+                generatedCode.add("astore " + String.valueOf(symbolTableVariableItem.getIndex()));
+            }
         }
 
     }
