@@ -179,9 +179,9 @@ public class GeneratorVisitorImpl implements Visitor {
             binaryExpression.getRight().accept(this);
             String nAfter = getFreshLabel();
             generatedCode.add("goto " + nAfter);
-            generatedCode.add(nElse + ":");
+            generatedCode.add(nElse + " :");
             generatedCode.add("iconst_0");
-            generatedCode.add(nAfter + ":");
+            generatedCode.add(nAfter + " :");
         }
         if (op == BinaryOperator.or) {
             binaryExpression.getLeft().accept(this);
@@ -190,9 +190,9 @@ public class GeneratorVisitorImpl implements Visitor {
             generatedCode.add("iconst_1");
             String nAfter = getFreshLabel();
             generatedCode.add("goto " + nAfter);
-            generatedCode.add(nElse + ":");
+            generatedCode.add(nElse + " :");
             binaryExpression.getRight().accept(this);
-            generatedCode.add(nAfter + ":");
+            generatedCode.add(nAfter + " :");
         }
         if (op == BinaryOperator.eq || op == BinaryOperator.neq || op == BinaryOperator.gt || op == BinaryOperator.lt) {
             binaryExpression.getLeft().accept(this);
@@ -202,9 +202,9 @@ public class GeneratorVisitorImpl implements Visitor {
             generatedCode.add("iconst_0");
             String nAfter = getFreshLabel();
             generatedCode.add("goto " + nAfter);
-            generatedCode.add(nTrue + ":");
+            generatedCode.add(nTrue + " :");
             generatedCode.add("iconst_1");
-            generatedCode.add(nAfter + ":");
+            generatedCode.add(nAfter + " :");
         }
         if (op == BinaryOperator.assign) {
             Expression lvalue = binaryExpression.getLeft();
@@ -320,9 +320,9 @@ public class GeneratorVisitorImpl implements Visitor {
             generatedCode.add("iconst_0");
             String nAfter = getFreshLabel();
             generatedCode.add("goto " + nAfter);
-            generatedCode.add(nOne + ":");
+            generatedCode.add(nOne + " :");
             generatedCode.add("iconst_1");
-            generatedCode.add(nAfter + ":");
+            generatedCode.add(nAfter + " :");
         }
     }
 
@@ -393,15 +393,15 @@ public class GeneratorVisitorImpl implements Visitor {
             conditional.getConsequenceBody().accept(this);
             String contLabel = getFreshLabel();
             generatedCode.add("goto " + contLabel);
-            generatedCode.add(elseLabel + ":");
+            generatedCode.add(elseLabel + " :");
             conditional.getAlternativeBody().accept(this);
-            generatedCode.add(contLabel + ":");
+            generatedCode.add(contLabel + " :");
         }
         else {
             String contLabel = getFreshLabel();
             generatedCode.add("ifeq" + contLabel);
             conditional.getConsequenceBody().accept(this);
-            generatedCode.add(contLabel + ":");
+            generatedCode.add(contLabel + " :");
         }
     }
 
@@ -433,11 +433,11 @@ public class GeneratorVisitorImpl implements Visitor {
         String nStart = getFreshLabel();
         generatedCode.add("goto " + nStart);
         String nStmt = getFreshLabel();
-        generatedCode.add(nStmt + ":");
+        generatedCode.add(nStmt + " :");
         loop.getBody().accept(this);
-        generatedCode.add(nStart + ":");
+        generatedCode.add(nStart + " :");
         loop.getCondition().accept(this);
-        generatedCode.add("ifneq " + nStmt);
+        generatedCode.add("ifne " + nStmt);
     }
 
     @Override
