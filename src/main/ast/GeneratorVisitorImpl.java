@@ -366,9 +366,21 @@ public class GeneratorVisitorImpl implements Visitor {
     @Override
     public void visit(Conditional conditional) {
         conditional.getExpression().accept(this);
-        conditional.getConsequenceBody().accept(this);
         if (conditional.getAlternativeBody() != null) {
+            String elseLabel = getFreshLabel();
+            generatedCode.add("ifeq " + elseLabel);
+            conditional.getConsequenceBody().accept(this);
+            String contLabel = getFreshLabel();
+            generatedCode.add("goto " + contLabel);
+            generatedCode.add(elseLabel + ":");
             conditional.getAlternativeBody().accept(this);
+            generatedCode.add(contLabel + ":");
+        }
+        else {
+            String contLabel = getFreshLabel();
+            generatedCode.add("ifeq" + contLabel);
+            conditional.getConsequenceBody().accept(this);
+            generatedCode.add(contLabel + ":");
         }
     }
 
