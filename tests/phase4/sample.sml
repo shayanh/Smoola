@@ -35,7 +35,7 @@ class XXX {
 	    if(hhh.changeAll(-10, 20, "salam") > 0 && hhh.printAll() <> "KHERS") then
 	        writeln("yyyyyyyyyyyy");
 
-	    # k = hhh.changeAll(1000, -20, this.toString());
+	    k = hhh.changeAll(1000, -20, this.toString());
 	    writeln(hhh.printAll());
 
 	    c = 0;
@@ -152,7 +152,7 @@ class Helper {
     def printAll() : string {
         writeln("------------");
         writeln(a.length);
-        writeln(3 + 3 - 5 * 6 / 7 + a[3] / (a[4] * i + i) + 1);
+        writeln(((3 + 3) - ((5 * 6) / 7)) + (a[3] / ((a[4] * i) + i)) + 1);
         writeln(a);
         writeln(this.pow(12, 6));
         writeln(new int[10][5] / 32);
@@ -162,7 +162,7 @@ class Helper {
         writeln(i);
         writeln(s);
         writeln(a);
-        # writeln(this.toString());
+        writeln(this.toString());
         i = -i;
         writeln(i);
         if(b) then
@@ -172,7 +172,7 @@ class Helper {
 
         i = i + i / 34;
         s = "fsdffs";
-       # s = x.toString();
+        s = x.toString();
         a = new int[100];
 
         {

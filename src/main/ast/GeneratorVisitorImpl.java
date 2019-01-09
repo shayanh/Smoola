@@ -201,8 +201,7 @@ public class GeneratorVisitorImpl implements Visitor {
             binaryExpression.getLeft().accept(this);
             binaryExpression.getRight().accept(this);
             generatedCode.add(op.getInstruction());
-        }
-        if (op == BinaryOperator.and) {
+        } else if (op == BinaryOperator.and) {
             binaryExpression.getLeft().accept(this);
             String nElse = getFreshLabel();
             generatedCode.add(op.getInstruction() + " " + nElse);
@@ -212,8 +211,7 @@ public class GeneratorVisitorImpl implements Visitor {
             generatedCode.add(nElse + " :");
             generatedCode.add("iconst_0");
             generatedCode.add(nAfter + " :");
-        }
-        if (op == BinaryOperator.or) {
+        } else if (op == BinaryOperator.or) {
             binaryExpression.getLeft().accept(this);
             String nElse = getFreshLabel();
             generatedCode.add(op.getInstruction() + " " + nElse);
@@ -223,8 +221,10 @@ public class GeneratorVisitorImpl implements Visitor {
             generatedCode.add(nElse + " :");
             binaryExpression.getRight().accept(this);
             generatedCode.add(nAfter + " :");
-        }
-        if (op == BinaryOperator.eq || op == BinaryOperator.neq || op == BinaryOperator.gt || op == BinaryOperator.lt) {
+        } else if (op == BinaryOperator.gt || op == BinaryOperator.lt ||
+                ((op == BinaryOperator.eq || op == BinaryOperator.neq) &&
+                        (binaryExpression.getLeft().getType().subtype(new IntType()) ||
+                        binaryExpression.getLeft().getType().subtype(new BooleanType())))) {
             binaryExpression.getLeft().accept(this);
             binaryExpression.getRight().accept(this);
             String nTrue = getFreshLabel();
@@ -235,8 +235,21 @@ public class GeneratorVisitorImpl implements Visitor {
             generatedCode.add(nTrue + " :");
             generatedCode.add("iconst_1");
             generatedCode.add(nAfter + " :");
-        }
-        if (op == BinaryOperator.assign) {
+        } else if (op == BinaryOperator.eq || op == BinaryOperator.neq) {
+            binaryExpression.getLeft().accept(this);
+            binaryExpression.getRight().accept(this);
+            generatedCode.add("invokevirtual java/lang/Object/equals(Ljava/lang/Object;)Z");
+            if (op == BinaryOperator.neq) {
+                String nOne = getFreshLabel();
+                generatedCode.add("ifeq " + nOne);
+                generatedCode.add("iconst_0");
+                String nAfter = getFreshLabel();
+                generatedCode.add("goto " + nAfter);
+                generatedCode.add(nOne + " :");
+                generatedCode.add("iconst_1");
+                generatedCode.add(nAfter + " :");
+            }
+        } else if (op == BinaryOperator.assign) {
             Expression lvalue = binaryExpression.getLeft();
             if (lvalue instanceof Identifier) {
                 Identifier identifier = (Identifier)lvalue;
