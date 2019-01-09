@@ -47,8 +47,6 @@ public class VarDeclaration extends Declaration {
         ArrayList<String> code = new ArrayList<>();
         if (type.subtype(new IntType()))
             code.add(".field protected " + identifier.getName() + " " + type.getTypeCode() + " = 0");
-        else if (type.subtype(new StringType()))
-            code.add(".field protected " + identifier.getName() + " " + type.getTypeCode() + " = \"\"");
         else if (type.subtype(new BooleanType()))
             code.add(".field protected " + identifier.getName() + " " + type.getTypeCode() + " = 0");
         else

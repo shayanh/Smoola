@@ -91,6 +91,7 @@ public class ClassDeclaration extends Declaration{
         }
 
         code.add(".method public <init>()V");
+        code.add(".limit stack 2");
         code.add("aload_0");
         code.add("invokespecial " + par + "/<init>()V");
         code.addAll(initCode);
