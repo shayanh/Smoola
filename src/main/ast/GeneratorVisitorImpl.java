@@ -29,6 +29,7 @@ public class GeneratorVisitorImpl implements Visitor {
     private ArrayList<String> generatedCode = new ArrayList<>();
     private boolean classVar = false;
     private int variableIndex = 0;
+    private String curClassName;
 
     public void setClassSymbolTable(HashMap<String, SymbolTable> classSymbolTable) { this.classSymbolTable = classSymbolTable; }
 
@@ -68,6 +69,7 @@ public class GeneratorVisitorImpl implements Visitor {
 
         String initCode = "";
         classVar = true;
+        curClassName = classDeclaration.getName().getName();
         for (VarDeclaration varDec : classDeclaration.getVarDeclarations()) {
             varDec.accept(this);
 //            if (varDec.getType().subtype(new StringType()))
@@ -165,10 +167,16 @@ public class GeneratorVisitorImpl implements Visitor {
     public void visit(Identifier identifier) {
         try {
             SymbolTableVariableItem item = (SymbolTableVariableItem) SymbolTable.top.get(identifier.getName());
-            if (item.getType().subtype(new IntType()) || item.getType().subtype(new BooleanType()))
-                generatedCode.add("iload " + item.getIndex());
-            else
-                generatedCode.add("aload " + item.getIndex());
+            if (item.getIndex() == -1) {
+                generatedCode.add("aload_0");
+                generatedCode.add("getfield " + curClassName + "/" + identifier.getName() + " " + identifier.getType().getTypeCode());
+            } else {
+                if (item.getType().subtype(new IntType()) || item.getType().subtype(new BooleanType())) {
+                    generatedCode.add("iload " + item.getIndex());
+                } else {
+                    generatedCode.add("aload " + item.getIndex());
+                }
+            }
         }
         catch (ItemNotFoundException e) {
             e.printStackTrace();
@@ -247,26 +255,31 @@ public class GeneratorVisitorImpl implements Visitor {
 
     @Override
     public void visit(Assign assign) {
-        assign.getlValue().accept(this);
-
         Expression lvalue = assign.getlValue();
-        String varName;
-        SymbolTableVariableItem item;
         if (lvalue instanceof Identifier) {
-            varName = ((Identifier) lvalue).getName();
+            Identifier identifier = (Identifier)lvalue;
+            SymbolTableVariableItem item;
             try {
-                item = (SymbolTableVariableItem)SymbolTable.top.get(varName);
+                item = (SymbolTableVariableItem)SymbolTable.top.get(identifier.getName());
             } catch (ItemNotFoundException e) {
                 e.printStackTrace();
                 return;
             }
-            if (lvalue.getType().subtype(new IntType()) || lvalue.getType().subtype(new BooleanType())) {
-                generatedCode.add("istore " + String.valueOf(item.getIndex()));
+            if (item.getIndex() == -1) {
+                generatedCode.add("aload_0");
+                assign.getrValue().accept(this);
+                generatedCode.add("putfield " + curClassName + "/" + identifier.getName() + " " + identifier.getType().getTypeCode());
             } else {
-                generatedCode.add("astore " + String.valueOf(item.getIndex()));
+                assign.getrValue().accept(this);
+                if (lvalue.getType().subtype(new IntType()) || lvalue.getType().subtype(new BooleanType())) {
+                    generatedCode.add("istore " + String.valueOf(item.getIndex()));
+                } else {
+                    generatedCode.add("astore " + String.valueOf(item.getIndex()));
+                }
             }
         } else if (lvalue instanceof ArrayCall) {
             lvalue.accept(this);
+            assign.getrValue().accept(this);
             generatedCode.add("iastore");
         }
     }

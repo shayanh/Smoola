@@ -26,9 +26,9 @@ public class mySmoola {
             v.setPass(Pass.Third);
             prog.accept(v);
         }
-//        Visitor codeGenerator = new GeneratorVisitorImpl();
-//        ((GeneratorVisitorImpl) codeGenerator).setClassSymbolTable(v.getClassSymbolTable());
-//        ((GeneratorVisitorImpl) codeGenerator).setClassDecMap(v.getClassDecMap());
-//        prog.accept(codeGenerator);
+        Visitor codeGenerator = new GeneratorVisitorImpl();
+        ((GeneratorVisitorImpl) codeGenerator).setClassSymbolTable(v.getClassSymbolTable());
+        ((GeneratorVisitorImpl) codeGenerator).setClassDecMap(v.getClassDecMap());
+        prog.accept(codeGenerator);
     }
 }
