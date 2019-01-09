@@ -175,8 +175,14 @@ public class GeneratorVisitorImpl implements Visitor {
     public void visit(MethodCall methodCall) {
         methodCall.getInstance().accept(this);
 
-        MethodDeclaration methodDec = classDecMap.get(methodCall.getInstance().getType().toString())
-                .getMethodDeclaration(methodCall.getMethodName());
+        MethodDeclaration methodDec = null;
+        ClassDeclaration classDec = classDecMap.get(methodCall.getInstance().getType().toString());
+        while (classDec != null) {
+            if (classDec.containsMethod(methodCall.getMethodName()))
+                methodDec = classDec.getMethodDeclaration(methodCall.getMethodName());
+            else
+                classDec = classDecMap.get(classDec.getParentName().getName());
+        }
 
         for (Expression arg : methodCall.getArgs()) {
             arg.accept(this);
