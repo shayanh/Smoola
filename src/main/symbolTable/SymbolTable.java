@@ -63,4 +63,8 @@ public class SymbolTable {
     public HashMap<String, SymbolTableItem> getItems() {
         return items;
     }
+
+    public static int getStackSize() {
+		return stack.size();
+	}
 }
