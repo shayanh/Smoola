@@ -230,7 +230,9 @@ public class GeneratorVisitorImpl implements Visitor {
                     }
                 }
             } else if (lvalue instanceof ArrayCall) {
-                lvalue.accept(this);
+                ArrayCall arrayCall = (ArrayCall) lvalue;
+                arrayCall.getInstance().accept(this);
+                arrayCall.getIndex().accept(this);
                 binaryExpression.getRight().accept(this);
                 generatedCode.add("iastore");
             }
@@ -371,7 +373,9 @@ public class GeneratorVisitorImpl implements Visitor {
                 }
             }
         } else if (lvalue instanceof ArrayCall) {
-            lvalue.accept(this);
+            ArrayCall arrayCall = (ArrayCall) lvalue;
+            arrayCall.getInstance().accept(this);
+            arrayCall.getIndex().accept(this);
             assign.getrValue().accept(this);
             generatedCode.add("iastore");
         }
