@@ -410,8 +410,14 @@ public class GeneratorVisitorImpl implements Visitor {
 
     @Override
     public void visit(While loop) {
-        loop.getCondition().accept(this);
+        String nStart = getFreshLabel();
+        generatedCode.add("goto " + nStart);
+        String nStmt = getFreshLabel();
+        generatedCode.add(nStmt + ":");
         loop.getBody().accept(this);
+        generatedCode.add(nStart + ":");
+        loop.getCondition().accept(this);
+        generatedCode.add("ifneq " + nStmt);
     }
 
     @Override
