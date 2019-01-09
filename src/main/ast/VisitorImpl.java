@@ -83,7 +83,6 @@ public class VisitorImpl implements Visitor {
         if (classDeclaration.getName().getName() != "Object" && !classDeclaration.hasParent()) {
             classDeclaration.setParentClass(classDecMap.get("Object"));
             classDeclaration.setParentName(new Identifier("Object"));
-            System.out.println(classDeclaration.getName().getName() + "-" + classDeclaration.getParentName().getName());
         }
 
         if (pass == Pass.First) {
