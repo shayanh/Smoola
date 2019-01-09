@@ -1,6 +1,5 @@
 package ast;
 
-import ast.Type.ArrayType.ArrayType;
 import ast.Type.PrimitiveType.BooleanType;
 import ast.Type.PrimitiveType.IntType;
 import ast.node.Program;
@@ -30,6 +29,11 @@ public class GeneratorVisitorImpl implements Visitor {
     private boolean classVar = false;
     private int variableIndex = 0;
     private String curClassName;
+    private int labelIndex = 0;
+
+    private String getFreshLabel() {
+        return "Label" + String.valueOf(labelIndex++);
+    }
 
     public void setClassSymbolTable(HashMap<String, SymbolTable> classSymbolTable) { this.classSymbolTable = classSymbolTable; }
 
@@ -158,9 +162,76 @@ public class GeneratorVisitorImpl implements Visitor {
 
     @Override
     public void visit(BinaryExpression binaryExpression) {
-        binaryExpression.getLeft().accept(this);
-        binaryExpression.getRight().accept(this);
-        generatedCode.addAll(binaryExpression.getGeneratedCode());
+        BinaryOperator op = binaryExpression.getBinaryOperator();
+        if (op == BinaryOperator.add || op == BinaryOperator.sub || op == BinaryOperator.mult || op == BinaryOperator.div) {
+            binaryExpression.getLeft().accept(this);
+            binaryExpression.getRight().accept(this);
+            generatedCode.add(op.getInstruction());
+        }
+        if (op == BinaryOperator.and) {
+            binaryExpression.getLeft().accept(this);
+            String nElse = getFreshLabel();
+            generatedCode.add(op.getInstruction() + " " + nElse);
+            binaryExpression.getRight().accept(this);
+            String nAfter = getFreshLabel();
+            generatedCode.add("goto " + nAfter);
+            generatedCode.add(nElse + ":");
+            generatedCode.add("iconst_0");
+            generatedCode.add(nAfter + ":");
+        }
+        if (op == BinaryOperator.or) {
+            binaryExpression.getLeft().accept(this);
+            String nElse = getFreshLabel();
+            generatedCode.add(op.getInstruction() + " " + nElse);
+            generatedCode.add("iconst_1");
+            String nAfter = getFreshLabel();
+            generatedCode.add("goto " + nAfter);
+            generatedCode.add(nElse + ":");
+            binaryExpression.getRight().accept(this);
+            generatedCode.add(nAfter + ":");
+        }
+        if (op == BinaryOperator.eq || op == BinaryOperator.neq || op == BinaryOperator.gt || op == BinaryOperator.lt) {
+            binaryExpression.getLeft().accept(this);
+            binaryExpression.getRight().accept(this);
+            String nTrue = getFreshLabel();
+            generatedCode.add(op.getInstruction() + " " + nTrue);
+            generatedCode.add("iconst_0");
+            String nAfter = getFreshLabel();
+            generatedCode.add("goto " + nAfter);
+            generatedCode.add(nTrue + ":");
+            generatedCode.add("iconst_1");
+            generatedCode.add(nAfter + ":");
+        }
+        if (op == BinaryOperator.assign) {
+            Expression lvalue = binaryExpression.getLeft();
+            if (lvalue instanceof Identifier) {
+                Identifier identifier = (Identifier)lvalue;
+                SymbolTableVariableItem item;
+                try {
+                    item = (SymbolTableVariableItem)SymbolTable.top.get(identifier.getName());
+                } catch (ItemNotFoundException e) {
+                    e.printStackTrace();
+                    return;
+                }
+                if (item.getIndex() == -1) {
+                    generatedCode.add("aload_0");
+                    binaryExpression.getRight().accept(this);
+                    generatedCode.add("putfield " + curClassName + "/" + identifier.getName() + " " + identifier.getType().getTypeCode());
+                } else {
+                    binaryExpression.getRight().accept(this);
+                    if (lvalue.getType().subtype(new IntType()) || lvalue.getType().subtype(new BooleanType())) {
+                        generatedCode.add("istore " + String.valueOf(item.getIndex()));
+                    } else {
+                        generatedCode.add("astore " + String.valueOf(item.getIndex()));
+                    }
+                }
+            } else if (lvalue instanceof ArrayCall) {
+                lvalue.accept(this);
+                binaryExpression.getRight().accept(this);
+                generatedCode.add("iastore");
+            }
+            lvalue.accept(this);
+        }
     }
 
     @Override
@@ -206,7 +277,7 @@ public class GeneratorVisitorImpl implements Visitor {
         }
 
         generatedCode.add("invokevirtual " + methodCall.getInstance().getType().toString() + "/"
-                + methodDec.getInvokationCode());
+                + methodDec.getInvocationCode());
 
     }
 

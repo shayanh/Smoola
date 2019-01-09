@@ -51,16 +51,6 @@ public class BinaryExpression extends Expression {
 
     @Override
     public ArrayList<String> getGeneratedCode() {
-        ArrayList<String> code = new ArrayList<>();
-        if (binaryOperator == BinaryOperator.add)
-            code.add("iadd");
-        else if (binaryOperator == BinaryOperator.sub)
-            code.add("isub");
-        else if (binaryOperator == BinaryOperator.mult)
-            code.add("imul");
-        else if (binaryOperator == BinaryOperator.div)
-            code.add("idiv");
-        //TODO: lt and gt need branch
         return null;
     }
 }
