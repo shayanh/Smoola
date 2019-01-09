@@ -1,5 +1,6 @@
 package ast;
 
+import ast.Type.ArrayType.ArrayType;
 import ast.Type.PrimitiveType.BooleanType;
 import ast.Type.PrimitiveType.IntType;
 import ast.Type.PrimitiveType.StringType;
@@ -479,7 +480,12 @@ public class GeneratorVisitorImpl implements Visitor {
     public void visit(Write write) {
         generatedCode.add(write.getPrintStream());
         write.getArg().accept(this);
-        generatedCode.add(write.getInvokeCode());
+        if (write.getArg().getType().subtype(new ArrayType())) {
+            generatedCode.add("invokestatic java/util/Arrays.toString([I)Ljava/lang/String;");
+            generatedCode.add("invokevirtual java/io/PrintStream/println(Ljava/lang/String;)V");
+        }
+        else
+            generatedCode.add(write.getInvokeCode());
     }
 
     public void starterClassCodeGenerator(String mainClass) {
