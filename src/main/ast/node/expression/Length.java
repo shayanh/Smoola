@@ -1,5 +1,6 @@
 package ast.node.expression;
 
+import ast.Type.ArrayType.ArrayType;
 import ast.Visitor;
 import ast.node.expression.Value.IntValue;
 
@@ -32,8 +33,7 @@ public class Length extends Expression {
     @Override
     public ArrayList<String> getGeneratedCode() {
         ArrayList<String> code = new ArrayList<>();
-        IntValue value = (IntValue) expression;
-        code.add("ldc " + String.valueOf(value.getConstant()));
+        code.add("arraylength");
         return code;
     }
 }

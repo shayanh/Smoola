@@ -80,12 +80,14 @@ public class GeneratorVisitorImpl implements Visitor {
             if (varDec.getType().subtype(new StringType())) {
                 initCode.add("aload_0");
                 initCode.add("ldc");
-                initCode.add("putfield " + classDeclaration.getName().getName() + "/" + varDec.getType().getTypeCode());
+                initCode.add("putfield " + classDeclaration.getName().getName() + "/" + varDec.getIdentifier().getName()
+                    + " " + varDec.getType().getTypeCode());
             }
             else if (varDec.getType().subtype(new IntType()) || varDec.getType().subtype(new BooleanType())) {
                 initCode.add("aload_0");
                 initCode.add("iconst_0");
-                initCode.add("putfield " + classDeclaration.getName().getName() + "/" + varDec.getType().getTypeCode());
+                initCode.add("putfield " + classDeclaration.getName().getName() + "/" + varDec.getIdentifier().getName()
+                        + " " + varDec.getType().getTypeCode());
             }
         }
         classVar = false;
@@ -258,6 +260,7 @@ public class GeneratorVisitorImpl implements Visitor {
 
     @Override
     public void visit(Length length) {
+        length.getExpression().accept(this);
         generatedCode.addAll(length.getGeneratedCode());
     }
 
@@ -268,8 +271,11 @@ public class GeneratorVisitorImpl implements Visitor {
         MethodDeclaration methodDec = null;
         ClassDeclaration classDec = classDecMap.get(methodCall.getInstance().getType().toString());
         while (classDec != null) {
-            if (classDec.containsMethod(methodCall.getMethodName()))
+            if (classDec.containsMethod(methodCall.getMethodName())) {
                 methodDec = classDec.getMethodDeclaration(methodCall.getMethodName());
+                break;
+            }
+
             else
                 classDec = classDecMap.get(classDec.getParentName().getName());
         }
@@ -406,8 +412,10 @@ public class GeneratorVisitorImpl implements Visitor {
         MethodDeclaration methodDec = null;
         ClassDeclaration classDec = classDecMap.get(methodCallInMain.getInstance().getType().toString());
         while (classDec != null) {
-            if (classDec.containsMethod(methodCallInMain.getMethodName()))
+            if (classDec.containsMethod(methodCallInMain.getMethodName())) {
                 methodDec = classDec.getMethodDeclaration(methodCallInMain.getMethodName());
+                break;
+            }
             else
                 classDec = classDecMap.get(classDec.getParentName().getName());
         }
