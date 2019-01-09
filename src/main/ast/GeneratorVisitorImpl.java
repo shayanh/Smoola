@@ -70,6 +70,30 @@ public class GeneratorVisitorImpl implements Visitor {
         SymbolTable symbolTable = new SymbolTable(SymbolTable.top);
         SymbolTable.push(symbolTable);
 
+        if (classDeclaration.hasParent()) {
+            String parName = classDeclaration.getParentName().getName();
+            ClassDeclaration x = classDecMap.get(parName);
+            classDeclaration.setParentClass(x);
+            while (x != null) {
+                SymbolTable s = classSymbolTable.get(x.getName().getName());
+                for (SymbolTableItem symbolTableItem : s.getItems().values()) {
+                    if (symbolTableItem.getKey().equals("this"))
+                        continue;
+                    try {
+                        SymbolTable.top.put(symbolTableItem);
+                    } catch (ItemAlreadyExistsException e) {
+                        System.out.println(e.getMessage());
+                    }
+                }
+                Identifier parIdentifier = x.getParentName();
+                if (parIdentifier == null) {
+                    break;
+                }
+                parName = x.getParentName().getName();
+                x = classDecMap.get(parName);
+            }
+        }
+
         generatedCode.addAll(classDeclaration.getGeneratedCode());
 
         ArrayList<String> initCode = new ArrayList<>();
@@ -257,6 +281,8 @@ public class GeneratorVisitorImpl implements Visitor {
             }
         }
         catch (ItemNotFoundException e) {
+//            System.out.println(identifier.getName());
+//            System.out.println(identifier.getLine());
             e.printStackTrace();
         }
     }

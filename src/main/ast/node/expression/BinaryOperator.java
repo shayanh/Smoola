@@ -8,7 +8,7 @@ public enum BinaryOperator {
     static {
         add.instruction = "iadd";
         sub.instruction = "isub";
-        mult.instruction = "imult";
+        mult.instruction = "imul";
         div.instruction = "idiv";
         and.instruction = "ifeq";
         or.instruction = "ifeq";

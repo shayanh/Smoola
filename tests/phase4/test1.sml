@@ -1,5 +1,6 @@
 class MainClass {
     def main() : int {
+        writeln((new Test()).method2());
         return 0;
     }
 }
@@ -12,9 +13,9 @@ class Test {
     }
 
     def method2() : int {
-        var t: Test;
-        t = new Test();
-        t.method1()[2] = 3;
+        var t: int[];
+        t = new int[10];
+        t[1] = 3;
         return 0;
     }
 }
