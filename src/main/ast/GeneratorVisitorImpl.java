@@ -1,5 +1,6 @@
 package ast;
 
+import ast.Type.ArrayType.ArrayType;
 import ast.Type.PrimitiveType.BooleanType;
 import ast.Type.PrimitiveType.IntType;
 import ast.node.Program;
@@ -27,6 +28,7 @@ public class GeneratorVisitorImpl implements Visitor {
     private HashMap<String, ClassDeclaration> classDecMap;
     private ArrayList<String> generatedCode = new ArrayList<>();
     private boolean classVar = false;
+    private int variableIndex = 0;
 
     public void setClassSymbolTable(HashMap<String, SymbolTable> classSymbolTable) { this.classSymbolTable = classSymbolTable; }
 
@@ -93,11 +95,15 @@ public class GeneratorVisitorImpl implements Visitor {
         SymbolTable symbolTable = new SymbolTable(SymbolTable.top);
         SymbolTable.push(symbolTable);
 
+        variableIndex = 1;
+
         for (VarDeclaration arg : methodDeclaration.getArgs()) {
             arg.accept(this);
+            variableIndex++;
         }
         for (VarDeclaration localVar : methodDeclaration.getLocalVars()) {
             localVar.accept(this);
+            variableIndex++;
         }
         for (Statement statement : methodDeclaration.getBody()) {
             statement.accept(this);
@@ -112,13 +118,7 @@ public class GeneratorVisitorImpl implements Visitor {
 
     @Override
     public void visit(VarDeclaration varDeclaration) {
-        SymbolTableVariableItem symbolTableVariableItem = new SymbolTableVariableItem(varDeclaration.getIdentifier().getName(), varDeclaration.getType());
-        try {
-            SymbolTable.top.put(symbolTableVariableItem);
-        } catch (ItemAlreadyExistsException e) {
-            e.printStackTrace();
-        }
-
+        int index = -1;
         if (!classVar) {
 //            if (varDeclaration.getType().subtype(new BooleanType())) {
 //                generatedCode.add("iconst_0\n" +
@@ -134,8 +134,17 @@ public class GeneratorVisitorImpl implements Visitor {
 //            }
         }
         else {
+            index = variableIndex;
             generatedCode.add(varDeclaration.getGeneratedCode());
         }
+        String varName = varDeclaration.getIdentifier().getName();
+        SymbolTableVariableItem symbolTableVariableItem = new SymbolTableVariableItem(varName, varDeclaration.getType(), index);
+        try {
+            SymbolTable.top.put(symbolTableVariableItem);
+        } catch (ItemAlreadyExistsException e) {
+            e.printStackTrace();
+        }
+
     }
 
     @Override
@@ -232,8 +241,28 @@ public class GeneratorVisitorImpl implements Visitor {
 
     @Override
     public void visit(Assign assign) {
-        assign.getrValue().accept(this);
         assign.getlValue().accept(this);
+
+        Expression lvalue = assign.getlValue();
+        String varName;
+        SymbolTableVariableItem item;
+        if (lvalue instanceof Identifier) {
+            varName = ((Identifier) lvalue).getName();
+            try {
+                item = (SymbolTableVariableItem)SymbolTable.top.get(varName);
+            } catch (ItemNotFoundException e) {
+                e.printStackTrace();
+                return;
+            }
+            if (lvalue.getType().subtype(new IntType()) || lvalue.getType().subtype(new BooleanType())) {
+                generatedCode.add("istore " + String.valueOf(item.getIndex()));
+            } else {
+                generatedCode.add("astore " + String.valueOf(item.getIndex()));
+            }
+        } else if (lvalue instanceof ArrayCall) {
+            lvalue.accept(this);
+            generatedCode.add("iastore");
+        }
     }
 
     @Override

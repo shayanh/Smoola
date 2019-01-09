@@ -24,4 +24,8 @@ class Stack<E> {
     elements.remove(top + 1);
     return e;
   }
+
+  public int size() {
+    return top + 1;
+  }
 }
