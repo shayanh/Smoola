@@ -144,18 +144,18 @@ public class GeneratorVisitorImpl implements Visitor {
         }
         for (VarDeclaration localVar : methodDeclaration.getLocalVars()) {
             localVar.accept(this);
-//            if (localVar.getType().subtype(new BooleanType())) {
-//                generatedCode.add("iconst_0");
-//                generatedCode.add("istore " + variableIndex);
-//            }
-//            else if (localVar.getType().subtype(new IntType())) {
-//                generatedCode.add("ldc 0");
-//                generatedCode.add("istore " + variableIndex);
-//            }
-//            else if (localVar.getType().subtype(new StringType())) {
-//                generatedCode.add("ldc ");
-//                generatedCode.add("astore " + variableIndex);
-//            }
+            if (localVar.getType().subtype(new BooleanType())) {
+                generatedCode.add("iconst_0");
+                generatedCode.add("istore " + variableIndex);
+            }
+            else if (localVar.getType().subtype(new IntType())) {
+                generatedCode.add("ldc 0");
+                generatedCode.add("istore " + variableIndex);
+            }
+            else if (localVar.getType().subtype(new StringType())) {
+                generatedCode.add("ldc \"\"");
+                generatedCode.add("astore " + variableIndex);
+            }
             variableIndex++;
         }
         for (Statement statement : methodDeclaration.getBody()) {
