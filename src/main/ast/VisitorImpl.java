@@ -58,16 +58,20 @@ public class VisitorImpl implements Visitor {
             SymbolTable symbolTable = new SymbolTable();
             SymbolTable.push(symbolTable);
 
-            SymbolTableClassItem objectClassItem = new SymbolTableClassItem("Object");
-            try {
-                SymbolTable.top.put(objectClassItem);
-            } catch (ItemAlreadyExistsException e) {
-                e.printStackTrace();
-            }
-            ClassDeclaration objectClassDec = new ClassDeclaration(new Identifier("Object"), new Identifier(""));
-            classDecMap.put("Object", objectClassDec);
-            classSymbolTable.put("Object", new SymbolTable());
+//            SymbolTableClassItem objectClassItem = new SymbolTableClassItem("Object");
+//            try {
+//                SymbolTable.top.put(objectClassItem);
+//            } catch (ItemAlreadyExistsException e) {
+//                e.printStackTrace();
+//            }
+//            ClassDeclaration objectClassDec = new ClassDeclaration(new Identifier("Object"), new Identifier(""));
+//            classDecMap.put("Object", objectClassDec);
+//            classSymbolTable.put("Object", new SymbolTable());
         }
+
+        ClassDeclaration objectDec = getObjectClassDec();
+        objectDec.accept(this);
+
         program.getMainClass().accept(this);
         for (ClassDeclaration classDec : program.getClasses()) {
             classDec.accept(this);
@@ -76,6 +80,11 @@ public class VisitorImpl implements Visitor {
 
     @Override
     public void visit(ClassDeclaration classDeclaration) {
+        if (classDeclaration.getName().getName() != "Object" && classDeclaration.getParentName() == null) {
+            classDeclaration.setParentClass(classDecMap.get("Object"));
+            classDeclaration.setParentName(new Identifier("Object"));
+        }
+
         if (pass == Pass.First) {
             SymbolTableClassItem symbolTableClassItem = new SymbolTableClassItem(classDeclaration.getName().getName());
             try {
@@ -693,5 +702,17 @@ public class VisitorImpl implements Visitor {
 
     public HashMap<String, ClassDeclaration> getClassDecMap() {
         return classDecMap;
+    }
+
+    private ClassDeclaration getObjectClassDec() {
+        Identifier name = new Identifier("Object");
+        ClassDeclaration classDec = new ClassDeclaration(name, null);
+        Identifier methodName = new Identifier("toString");
+        MethodDeclaration methodDec = new MethodDeclaration(methodName);
+        methodDec.setReturnType(new StringType());
+        methodDec.setReturnValue(new StringValue("Object", new StringType()));
+        classDec.addMethodDeclaration(methodDec);
+
+        return classDec;
     }
 }
