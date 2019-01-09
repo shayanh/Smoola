@@ -52,7 +52,7 @@ public class GeneratorVisitorImpl implements Visitor {
     public void visit(Program program) {
         String mainClass = program.getMainClass().getName().getName();
         starterClassCodeGenerator(mainClass);
-        writeToFile("GeneratedMainClass");
+        writeToFile("JavaMain");
 
         generatedCode = new ArrayList<>();
         program.getMainClass().accept(this);

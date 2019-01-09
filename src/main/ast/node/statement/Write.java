@@ -28,7 +28,7 @@ public class Write extends Statement {
     }
 
     public String getInvokeCode() {
-        return "invokevirtual java/io/PrintStream/println(I)V";
+        return "invokevirtual java/io/PrintStream/println(" + arg.getType().getTypeCode() + ")V";
     }
 
     public String getPrintStream() {
