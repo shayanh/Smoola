@@ -38,9 +38,9 @@ public class GeneratorVisitorImpl implements Visitor {
 
     public void setClassSymbolTable(HashMap<String, SymbolTable> classSymbolTable) { this.classSymbolTable = classSymbolTable; }
 
-    public void writeToFile(String name) {
+    private void writeToFile(String name) {
         try {
-            Path file = Paths.get("./generated/" + name + ".j");
+            Path file = Paths.get("./output/" + name + ".j");
             Files.write(file, generatedCode);
         }
         catch (IOException e) {
@@ -302,7 +302,22 @@ public class GeneratorVisitorImpl implements Visitor {
 
     @Override
     public void visit(UnaryExpression unaryExpression) {
-        unaryExpression.getValue().accept(this);
+        if (unaryExpression.getUnaryOperator() == UnaryOperator.minus) {
+            generatedCode.add("iconst_0");
+            unaryExpression.getValue().accept(this);
+            generatedCode.add("isub");
+        }
+        if (unaryExpression.getUnaryOperator() == UnaryOperator.not) {
+            unaryExpression.getValue().accept(this);
+            String nOne = getFreshLabel();
+            generatedCode.add("ifeq " + nOne);
+            generatedCode.add("iconst_0");
+            String nAfter = getFreshLabel();
+            generatedCode.add("goto " + nAfter);
+            generatedCode.add(nOne + ":");
+            generatedCode.add("iconst_1");
+            generatedCode.add(nAfter + ":");
+        }
     }
 
     @Override
@@ -407,8 +422,14 @@ public class GeneratorVisitorImpl implements Visitor {
 
     @Override
     public void visit(While loop) {
-        loop.getCondition().accept(this);
+        String nStart = getFreshLabel();
+        generatedCode.add("goto " + nStart);
+        String nStmt = getFreshLabel();
+        generatedCode.add(nStmt + ":");
         loop.getBody().accept(this);
+        generatedCode.add(nStart + ":");
+        loop.getCondition().accept(this);
+        generatedCode.add("ifneq " + nStmt);
     }
 
     @Override
