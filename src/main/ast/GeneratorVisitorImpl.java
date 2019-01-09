@@ -55,6 +55,10 @@ public class GeneratorVisitorImpl implements Visitor {
         writeToFile("JavaMain");
 
         generatedCode = new ArrayList<>();
+        objectCodeGenerator();
+        writeToFile("Object");
+
+        generatedCode = new ArrayList<>();
         program.getMainClass().accept(this);
         writeToFile(mainClass);
 
@@ -467,6 +471,22 @@ public class GeneratorVisitorImpl implements Visitor {
                 "invokespecial " + mainClass + "/<init>()V\n" +
                 "invokevirtual " + mainClass + "/main()I\n" +
                 "return\n" +
+                ".end method";
+        generatedCode.add(code);
+    }
+
+    public void objectCodeGenerator() {
+        String code = ".class public Object\n" +
+                ".super java/lang/Object\n" +
+                ".method public <init>()V\n" +
+                "aload_0 ; push this\n" +
+                "invokespecial java/lang/Object/<init>()V ; call super\n" +
+                "return\n" +
+                ".end method\n" +
+                ".method public toString()Ljava/lang/String;\n" +
+                ".limit stack 2\n" +
+                "ldc \"Object\"\n" +
+                "areturn\n" +
                 ".end method";
         generatedCode.add(code);
     }
