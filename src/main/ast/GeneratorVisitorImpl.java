@@ -115,6 +115,14 @@ public class GeneratorVisitorImpl implements Visitor {
         }
         for (VarDeclaration localVar : methodDeclaration.getLocalVars()) {
             localVar.accept(this);
+            if (localVar.getType().subtype(new BooleanType()) || localVar.getType().subtype(new IntType())) {
+                generatedCode.add("iconst_0");
+                generatedCode.add("istore " + variableIndex);
+            }
+            else if (localVar.getType().subtype(new StringType())) {
+                generatedCode.add("ldc ");
+                generatedCode.add("astore " + variableIndex);
+            }
             variableIndex++;
         }
         for (Statement statement : methodDeclaration.getBody()) {
@@ -144,17 +152,6 @@ public class GeneratorVisitorImpl implements Visitor {
         } catch (ItemAlreadyExistsException e) {
             e.printStackTrace();
         }
-        if (!classVar) {
-            if (varDeclaration.getType().subtype(new BooleanType()) || varDeclaration.getType().subtype(new IntType())) {
-                generatedCode.add("iconst_0");
-                generatedCode.add("istore " + String.valueOf(symbolTableVariableItem.getIndex()));
-            }
-            else if (varDeclaration.getType().subtype(new StringType())) {
-                generatedCode.add("ldc ");
-                generatedCode.add("astore " + String.valueOf(symbolTableVariableItem.getIndex()));
-            }
-        }
-
     }
 
     @Override

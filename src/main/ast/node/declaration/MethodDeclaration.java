@@ -90,8 +90,8 @@ public class MethodDeclaration extends Declaration {
         dec.append(")");
         dec.append(this.getReturnType().getTypeCode());
         code.add(dec.toString());
+        code.add(".limit stack " + String.valueOf(localVars.size() + args.size() + 20));
         code.add(".limit locals " + String.valueOf(args.size() + localVars.size() + 1));
-        code.add(".limit stack 20");
 
         return code;
     }
