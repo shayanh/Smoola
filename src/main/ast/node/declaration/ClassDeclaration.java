@@ -79,7 +79,7 @@ public class ClassDeclaration extends Declaration{
         return code;
     }
 
-    public ArrayList<String> getInitMethodDecCode() {
+    public ArrayList<String> getInitMethodDecCode(ArrayList<String> initCode) {
         String par;
         ArrayList<String> code = new ArrayList<>();
 
@@ -93,6 +93,7 @@ public class ClassDeclaration extends Declaration{
         code.add(".method public <init>()V");
         code.add("aload_0");
         code.add("invokespecial " + par + "/<init>()V");
+        code.addAll(initCode);
         code.add("return");
         code.add(".end method");
 
