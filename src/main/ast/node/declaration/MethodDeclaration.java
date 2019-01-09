@@ -82,14 +82,14 @@ public class MethodDeclaration extends Declaration {
     @Override
     public ArrayList<String> getGeneratedCode() {
         ArrayList<String> code = new ArrayList<>();
-        String dec = "";
-        dec += ".method public " + name.getName() + "(";
+        StringBuilder dec = new StringBuilder();
+        dec.append(".method public ").append(name.getName()).append("(");
         for (VarDeclaration arg : args) {
-            dec += arg.getType().getTypeCode();
+            dec.append(arg.getType().getTypeCode());
         }
-        dec += ")";
-        dec += this.getReturnType().getTypeCode();
-        code.add(dec);
+        dec.append(")");
+        dec.append(this.getReturnType().getTypeCode());
+        code.add(dec.toString());
         code.add(".limit locals " + String.valueOf(args.size() + localVars.size() + 1));
         code.add(".limit stack 20");
 
@@ -106,13 +106,13 @@ public class MethodDeclaration extends Declaration {
     }
 
     public String getInvokationCode() {
-        String code = name.getName() + "(";
+        StringBuilder code = new StringBuilder(name.getName() + "(");
         for (VarDeclaration arg : args) {
-            code += arg.getType().getTypeCode();
+            code.append(arg.getType().getTypeCode());
         }
-        code += ")";
-        code += this.getReturnType().getTypeCode();
+        code.append(")");
+        code.append(this.getReturnType().getTypeCode());
 
-        return code;
+        return code.toString();
     }
 }
