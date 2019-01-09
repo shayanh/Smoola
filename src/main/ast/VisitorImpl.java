@@ -80,9 +80,10 @@ public class VisitorImpl implements Visitor {
 
     @Override
     public void visit(ClassDeclaration classDeclaration) {
-        if (classDeclaration.getName().getName() != "Object" && classDeclaration.getParentName() == null) {
+        if (classDeclaration.getName().getName() != "Object" && !classDeclaration.hasParent()) {
             classDeclaration.setParentClass(classDecMap.get("Object"));
             classDeclaration.setParentName(new Identifier("Object"));
+            System.out.println(classDeclaration.getName().getName() + "-" + classDeclaration.getParentName().getName());
         }
 
         if (pass == Pass.First) {
