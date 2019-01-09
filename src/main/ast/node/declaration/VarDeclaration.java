@@ -1,5 +1,8 @@
 package ast.node.declaration;
 
+import ast.Type.PrimitiveType.BooleanType;
+import ast.Type.PrimitiveType.IntType;
+import ast.Type.PrimitiveType.StringType;
 import ast.Type.Type;
 import ast.Visitor;
 import ast.node.expression.Identifier;
@@ -26,7 +29,6 @@ public class VarDeclaration extends Declaration {
     public Type getType() {
         return type;
     }
-
     public void setType(Type type) {
         this.type = type;
     }
@@ -43,7 +45,14 @@ public class VarDeclaration extends Declaration {
     @Override
     public ArrayList<String> getGeneratedCode() {
         ArrayList<String> code = new ArrayList<>();
-        code.add(".field protected " + identifier.getName() + " " + type.getTypeCode());
+        if (type.subtype(new IntType()))
+            code.add(".field protected " + identifier.getName() + " " + type.getTypeCode() + " = 0");
+        else if (type.subtype(new StringType()))
+            code.add(".field protected " + identifier.getName() + " " + type.getTypeCode() + " = \"\"");
+        else if (type.subtype(new BooleanType()))
+            code.add(".field protected " + identifier.getName() + " " + type.getTypeCode() + " = false");
+        else
+            code.add(".field protected " + identifier.getName() + " " + type.getTypeCode());
         return code;
     }
 }
