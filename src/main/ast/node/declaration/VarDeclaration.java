@@ -50,7 +50,7 @@ public class VarDeclaration extends Declaration {
         else if (type.subtype(new StringType()))
             code.add(".field protected " + identifier.getName() + " " + type.getTypeCode() + " = \"\"");
         else if (type.subtype(new BooleanType()))
-            code.add(".field protected " + identifier.getName() + " " + type.getTypeCode() + " = false");
+            code.add(".field protected " + identifier.getName() + " " + type.getTypeCode() + " = 0");
         else
             code.add(".field protected " + identifier.getName() + " " + type.getTypeCode());
         return code;
