@@ -107,16 +107,10 @@ public class GeneratorVisitorImpl implements Visitor {
         for (VarDeclaration varDec : classDeclaration.getVarDeclarations()) {
             varDec.accept(this);
             if (varDec.getType().subtype(new StringType())) {
-//                initCode.add("aload_0");
-//                initCode.add("ldc");
-//                initCode.add("putfield " + classDeclaration.getName().getName() + "/" + varDec.getIdentifier().getName()
-//                    + " " + varDec.getType().getTypeCode());
-            }
-            else if (varDec.getType().subtype(new IntType()) || varDec.getType().subtype(new BooleanType())) {
-//                initCode.add("aload_0");
-//                initCode.add("iconst_0");
-//                initCode.add("putfield " + classDeclaration.getName().getName() + "/" + varDec.getIdentifier().getName()
-//                        + " " + varDec.getType().getTypeCode());
+                initCode.add("aload_0");
+                initCode.add("ldc \"\"");
+                initCode.add("putfield " + classDeclaration.getName().getName() + "/" + varDec.getIdentifier().getName()
+                    + " " + varDec.getType().getTypeCode());
             }
         }
         classVar = false;
@@ -224,7 +218,7 @@ public class GeneratorVisitorImpl implements Visitor {
         } else if (op == BinaryOperator.gt || op == BinaryOperator.lt ||
                 ((op == BinaryOperator.eq || op == BinaryOperator.neq) &&
                         (binaryExpression.getLeft().getType().subtype(new IntType()) ||
-                        binaryExpression.getLeft().getType().subtype(new BooleanType())))) {
+                                binaryExpression.getLeft().getType().subtype(new BooleanType())))) {
             binaryExpression.getLeft().accept(this);
             binaryExpression.getRight().accept(this);
             String nTrue = getFreshLabel();
