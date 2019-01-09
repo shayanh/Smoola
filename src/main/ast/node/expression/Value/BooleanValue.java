@@ -3,6 +3,8 @@ package ast.node.expression.Value;
 import ast.Type.Type;
 import ast.Visitor;
 
+import java.util.ArrayList;
+
 public class BooleanValue extends Value {
     private boolean constant;
 
@@ -29,10 +31,12 @@ public class BooleanValue extends Value {
     }
 
     @Override
-    public String getGeneratedCode() {
+    public ArrayList<String> getGeneratedCode() {
+        ArrayList<String> code = new ArrayList<>();
         if (constant)
-            return "iconst_1";
+            code.add("iconst_1");
         else
-            return "iconst_0";
+            code.add("iconst_0");
+        return code;
     }
 }

@@ -3,6 +3,8 @@ package ast.node.expression.Value;
 import ast.Type.Type;
 import ast.Visitor;
 
+import java.util.ArrayList;
+
 public class StringValue extends Value {
     private String constant;
 
@@ -29,7 +31,9 @@ public class StringValue extends Value {
     }
 
     @Override
-    public String getGeneratedCode() {
-        return "ldc \"" + constant + "\"";
+    public ArrayList<String> getGeneratedCode() {
+        ArrayList<String> code = new ArrayList<>();
+        code.add("ldc \"" + constant + "\"");
+        return code;
     }
 }

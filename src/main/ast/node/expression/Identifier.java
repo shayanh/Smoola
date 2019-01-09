@@ -2,6 +2,8 @@ package ast.node.expression;
 
 import ast.Visitor;
 
+import java.util.ArrayList;
+
 public class Identifier extends Expression {
     private String name;
 
@@ -27,7 +29,7 @@ public class Identifier extends Expression {
     }
 
     @Override
-    public String getGeneratedCode() {
+    public ArrayList<String> getGeneratedCode() {
         return null;
     }
 }

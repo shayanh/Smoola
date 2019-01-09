@@ -2,6 +2,8 @@ package ast.node;
 
 import ast.Visitor;
 
+import java.util.ArrayList;
+
 public abstract class Node {
     private int line;
 
@@ -9,5 +11,5 @@ public abstract class Node {
     public void setLine(int l) { line = l; }
 
     public void accept(Visitor visitor) {}
-    public abstract String getGeneratedCode();
+    public abstract ArrayList<String> getGeneratedCode();
 }

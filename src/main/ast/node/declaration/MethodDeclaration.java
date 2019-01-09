@@ -80,16 +80,18 @@ public class MethodDeclaration extends Declaration {
     }
 
     @Override
-    public String getGeneratedCode() {
-        String code = ".method public " + name.getName() + "(";
+    public ArrayList<String> getGeneratedCode() {
+        ArrayList<String> code = new ArrayList<>();
+        String dec = "";
+        dec += ".method public " + name.getName() + "(";
         for (VarDeclaration arg : args) {
-            code += arg.getType().getTypeCode();
+            dec += arg.getType().getTypeCode();
         }
-        code += ")";
-        code += this.getReturnType().getTypeCode();
-        code += "\n";
-        code += ".limit locals " + String.valueOf(args.size() + localVars.size() + 1) + "\n";
-        code += ".limit stack 20";
+        dec += ")";
+        dec += this.getReturnType().getTypeCode();
+        code.add(dec);
+        code.add(".limit locals " + String.valueOf(args.size() + localVars.size() + 1));
+        code.add(".limit stack 20");
 
         return code;
     }

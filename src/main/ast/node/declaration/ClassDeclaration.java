@@ -65,21 +65,23 @@ public class ClassDeclaration extends Declaration{
     }
 
     @Override
-    public String getGeneratedCode() {
-        String code = ".class public " + name.getName() + "\n";
+    public ArrayList<String> getGeneratedCode() {
+        ArrayList<String> code = new ArrayList<>();
+        code.add(".class public " + name.getName());
 
         if (!this.hasParent()) {
-            code += ".super java/lang/Object";
+            code.add(".super java/lang/Object");
         }
         else {
-            code += ".super " + parentName.getName();
+            code.add(".super " + parentName.getName());
         }
 
         return code;
     }
 
-    public String getInitMethodDecCode() {
+    public ArrayList<String> getInitMethodDecCode() {
         String par;
+        ArrayList<String> code = new ArrayList<>();
 
         if (!this.hasParent()) {
             par = "java/lang/Object";
@@ -88,11 +90,13 @@ public class ClassDeclaration extends Declaration{
             par = parentName.getName();
         }
 
-        return ".method public <init>()V\n" +
-                "aload_0\n" +
-                "invokespecial " + par + "/<init>()V\n" +
-                "return\n" +
-                ".end method";
+        code.add(".method public <init>()V");
+        code.add("aload_0");
+        code.add("invokespecial " + par + "/<init>()V");
+        code.add("return");
+        code.add(".end method");
+
+        return code;
     }
 
     public String getInitMethod() {

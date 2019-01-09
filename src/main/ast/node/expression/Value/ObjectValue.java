@@ -3,6 +3,8 @@ package ast.node.expression.Value;
 import ast.Type.Type;
 import ast.Visitor;
 
+import java.util.ArrayList;
+
 public class ObjectValue extends Value {
     public ObjectValue(Type type) {
         this.type = type;
@@ -18,7 +20,7 @@ public class ObjectValue extends Value {
     }
 
     @Override
-    public String getGeneratedCode() {
+    public ArrayList<String> getGeneratedCode() {
         return null;
     }
 }

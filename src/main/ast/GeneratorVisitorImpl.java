@@ -62,7 +62,7 @@ public class GeneratorVisitorImpl implements Visitor {
         SymbolTable symbolTable = new SymbolTable(SymbolTable.top);
         SymbolTable.push(symbolTable);
 
-        generatedCode.add(classDeclaration.getGeneratedCode());
+        generatedCode.addAll(classDeclaration.getGeneratedCode());
 
         String initCode = "";
         classVar = true;
@@ -78,10 +78,10 @@ public class GeneratorVisitorImpl implements Visitor {
         classVar = false;
        // generatedCode.add(initCode);
 
-        generatedCode.add(classDeclaration.getInitMethodDecCode());
+        generatedCode.addAll(classDeclaration.getInitMethodDecCode());
 
         for (MethodDeclaration methodDec : classDeclaration.getMethodDeclarations()) {
-            generatedCode.add(methodDec.getGeneratedCode());
+            generatedCode.addAll(methodDec.getGeneratedCode());
             methodDec.accept(this);
         }
 
@@ -134,7 +134,7 @@ public class GeneratorVisitorImpl implements Visitor {
 //            }
         }
         else {
-            generatedCode.add(varDeclaration.getGeneratedCode());
+            generatedCode.addAll(varDeclaration.getGeneratedCode());
         }
     }
 
@@ -142,14 +142,14 @@ public class GeneratorVisitorImpl implements Visitor {
     public void visit(ArrayCall arrayCall) {
         arrayCall.getInstance().accept(this);
         arrayCall.getIndex().accept(this);
-        generatedCode.add(arrayCall.getGeneratedCode());
+        generatedCode.addAll(arrayCall.getGeneratedCode());
     }
 
     @Override
     public void visit(BinaryExpression binaryExpression) {
         binaryExpression.getLeft().accept(this);
         binaryExpression.getRight().accept(this);
-        generatedCode.add(binaryExpression.getGeneratedCode());
+        generatedCode.addAll(binaryExpression.getGeneratedCode());
     }
 
     @Override
@@ -168,7 +168,7 @@ public class GeneratorVisitorImpl implements Visitor {
 
     @Override
     public void visit(Length length) {
-        generatedCode.add(length.getGeneratedCode());
+        generatedCode.addAll(length.getGeneratedCode());
     }
 
     @Override
@@ -190,19 +190,19 @@ public class GeneratorVisitorImpl implements Visitor {
     @Override
     public void visit(NewArray newArray) {
         newArray.getExpression().accept(this);
-        generatedCode.add(newArray.getGeneratedCode());
+        generatedCode.addAll(newArray.getGeneratedCode());
     }
 
     @Override
     public void visit(NewClass newClass) {
-        generatedCode.add(newClass.getGeneratedCode());
+        generatedCode.addAll(newClass.getGeneratedCode());
         ClassDeclaration classDec = classDecMap.get(newClass.getClassName().getName());
         generatedCode.add(classDec.getInitMethod());
     }
 
     @Override
     public void visit(This instance) {
-        generatedCode.add(instance.getGeneratedCode());
+        generatedCode.addAll(instance.getGeneratedCode());
     }
 
     @Override
@@ -212,17 +212,17 @@ public class GeneratorVisitorImpl implements Visitor {
 
     @Override
     public void visit(BooleanValue value) {
-        generatedCode.add(value.getGeneratedCode());
+        generatedCode.addAll(value.getGeneratedCode());
     }
 
     @Override
     public void visit(IntValue value) {
-        generatedCode.add(value.getGeneratedCode());
+        generatedCode.addAll(value.getGeneratedCode());
     }
 
     @Override
     public void visit(StringValue value) {
-        generatedCode.add(value.getGeneratedCode());
+        generatedCode.addAll(value.getGeneratedCode());
     }
 
     @Override
