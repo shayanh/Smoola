@@ -1,9 +1,10 @@
 package ast.node.declaration;
 
-import ast.Type.PrimitiveType.BooleanType;
 import ast.Type.Type;
 import ast.Visitor;
 import ast.node.expression.Identifier;
+
+import java.util.ArrayList;
 
 public class VarDeclaration extends Declaration {
     private Identifier identifier;
@@ -40,7 +41,9 @@ public class VarDeclaration extends Declaration {
     }
 
     @Override
-    public String getGeneratedCode() {
-        return ".field protected " + identifier.getName() + " " + type.getTypeCode();
+    public ArrayList<String> getGeneratedCode() {
+        ArrayList<String> code = new ArrayList<>();
+        code.add(".field protected " + identifier.getName() + " " + type.getTypeCode());
+        return code;
     }
 }

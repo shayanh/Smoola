@@ -1,6 +1,5 @@
 package ast.node.expression;
 
-import ast.Type.Type;
 import ast.Visitor;
 
 import java.util.ArrayList;
@@ -50,7 +49,7 @@ public class MethodCall extends Expression {
     }
 
     @Override
-    public String getGeneratedCode() {
-        return "Invokevirtual ";
+    public ArrayList<String> getGeneratedCode() {
+        return null;
     }
 }

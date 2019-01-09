@@ -2,6 +2,8 @@ package ast.node.expression;
 
 import ast.Visitor;
 
+import java.util.ArrayList;
+
 public class BinaryExpression extends Expression {
 
     private Expression left;
@@ -48,15 +50,16 @@ public class BinaryExpression extends Expression {
     }
 
     @Override
-    public String getGeneratedCode() {
+    public ArrayList<String> getGeneratedCode() {
+        ArrayList<String> code = new ArrayList<>();
         if (binaryOperator == BinaryOperator.add)
-            return "iadd";
+            code.add("iadd");
         else if (binaryOperator == BinaryOperator.sub)
-            return "isub";
+            code.add("isub");
         else if (binaryOperator == BinaryOperator.mult)
-            return "imul";
+            code.add("imul");
         else if (binaryOperator == BinaryOperator.div)
-            return "idiv";
+            code.add("idiv");
         //TODO: lt and gt need branch
         return null;
     }

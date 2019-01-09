@@ -2,6 +2,8 @@ package ast.node.expression;
 
 import ast.Visitor;
 
+import java.util.ArrayList;
+
 public class ArrayCall extends Expression {
     private Expression instance;
     private Expression index;
@@ -37,7 +39,9 @@ public class ArrayCall extends Expression {
     }
 
     @Override
-    public String getGeneratedCode() {
-        return "iaload";
+    public ArrayList<String> getGeneratedCode() {
+        ArrayList<String> code = new ArrayList<>();
+        code.add("iaload");
+        return code;
     }
 }

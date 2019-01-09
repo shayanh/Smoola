@@ -3,6 +3,8 @@ package ast.node.statement;
 import ast.Visitor;
 import ast.node.Node;
 
+import java.util.ArrayList;
+
 public class Statement extends Node {
 
     @Override
@@ -14,7 +16,7 @@ public class Statement extends Node {
     public void accept(Visitor visitor) {}
 
     @Override
-    public String getGeneratedCode() {
+    public ArrayList<String> getGeneratedCode() {
         return null;
     }
 }

@@ -3,6 +3,8 @@ package ast.node.expression;
 import ast.Visitor;
 import ast.node.expression.Value.IntValue;
 
+import java.util.ArrayList;
+
 public class Length extends Expression {
     private Expression expression;
 
@@ -28,8 +30,10 @@ public class Length extends Expression {
     }
 
     @Override
-    public String getGeneratedCode() {
+    public ArrayList<String> getGeneratedCode() {
+        ArrayList<String> code = new ArrayList<>();
         IntValue value = (IntValue) expression;
-        return "ldc " + String.valueOf(value.getConstant());
+        code.add("ldc " + String.valueOf(value.getConstant()));
+        return code;
     }
 }
