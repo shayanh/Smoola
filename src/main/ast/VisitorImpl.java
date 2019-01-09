@@ -20,10 +20,7 @@ import ast.node.expression.Value.StringValue;
 import ast.node.statement.*;
 import symbolTable.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class VisitorImpl implements Visitor {
 
@@ -80,7 +77,7 @@ public class VisitorImpl implements Visitor {
 
     @Override
     public void visit(ClassDeclaration classDeclaration) {
-        if (classDeclaration.getName().getName() != "Object" && !classDeclaration.hasParent()) {
+        if (!Objects.equals(classDeclaration.getName().getName(), "Object") && !classDeclaration.hasParent()) {
             classDeclaration.setParentClass(classDecMap.get("Object"));
             classDeclaration.setParentName(new Identifier("Object"));
         }
